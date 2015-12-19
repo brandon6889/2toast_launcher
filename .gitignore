@@ -1,5 +1,7 @@
 bin/*
 dist/*
+obf/*
+mapping.proguard
 .classpath
 .project
 .settings
