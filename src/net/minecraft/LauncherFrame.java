@@ -29,18 +29,21 @@ import javax.imageio.ImageIO;
 
 public class LauncherFrame extends Frame {
     public static final int VERSION = 14;
+    public static final String USERVERSION = "1.1";
     private static final long serialVersionUID = 1L;
     private Launcher launcher;
     private LoginForm loginForm;
 
     public LauncherFrame(Frame frame, File workingDirectory, Proxy proxy, PasswordAuthentication proxyAuth, String[] args, Integer bullshit) {
         super("2Toasty Minecraft Launcher");
-        System.out.println("WeaselWare Minecraft Launcher");
-        System.out.println("------------------------------");
+        System.out.println();
+        System.out.println("== 2Toasty Launcher v" + USERVERSION + " ==");
+        System.out.println();
         System.out.println("Java Runtime: "+System.getProperty("java.runtime.name"));
         System.out.println("Java Version: "+System.getProperty("java.runtime.version") + " ("+System.getProperty("java.specification.version")+")");
         float heapSizeMegs = (float) (Runtime.getRuntime().maxMemory() / 1024L / 1024L);
         System.out.println("Heap size:    " + heapSizeMegs);
+        System.out.println();
         this.setBackground(new Color(0, 0, 0));
         this.loginForm = new LoginForm(this);
         this.setLayout(new BorderLayout());
