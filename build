@@ -1,7 +1,8 @@
+# Requires LZMA utils from the following URL:
+#  http://tukaani.org/lzma/
 echo -n "Cleaning dist... "
 ant clean 1>/dev/null
 echo done.
-export JAVA_HOME=/usr/lib64/jvm/jdk1.8.0_45
 ant
 pushd . 1>/dev/null
 if [ -d dist ]; then
