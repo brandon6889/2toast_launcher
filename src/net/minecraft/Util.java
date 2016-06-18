@@ -100,35 +100,18 @@ public class Util {
                  */
     	        
         	    // Enable restricted ciphers
-    	        final Field restrictedField;
-    	        if (System.getProperty("java.specification.version").equals("1.6")) {
-    	            restrictedField = Class.forName("javax.crypto.SunJCE_b").getDeclaredField("g");
-    	        } else {
-    	            restrictedField = Class.forName("javax.crypto.JceSecurity").getDeclaredField("isRestricted");
-    	        }
+    	        final Field restrictedField = Class.forName("javax.crypto.JceSecurity").getDeclaredField("isRestricted");
                 restrictedField.setAccessible(true);
                 restrictedField.set(null, java.lang.Boolean.FALSE);
             
                 // Get default cipher policy
-                final Field policyField;
-                if (System.getProperty("java.specification.version").equals("1.6")) {
-                    policyField = Class.forName("javax.crypto.SunJCE_b").getDeclaredField("c");
-                } else {
-                    policyField = Class.forName("javax.crypto.JceSecurity").getDeclaredField("defaultPolicy");
-                }
+                final Field policyField = Class.forName("javax.crypto.JceSecurity").getDeclaredField("defaultPolicy");
                 policyField.setAccessible(true);
                 final PermissionCollection defaultPolicy = (PermissionCollection) policyField.get(null);
             
                 // Clear existing (restricted) policy
-                final Field permsField;
-                final Field instanceField;
-                if (System.getProperty("java.specification.version").equals("1.6")) {
-                    permsField = Class.forName("javax.crypto.SunJCE_d").getDeclaredField("a");
-                    instanceField = Class.forName("javax.crypto.SunJCE_k").getDeclaredField("b");
-                } else {
-                    permsField = Class.forName("javax.crypto.CryptoPermissions").getDeclaredField("perms");
-                    instanceField = Class.forName("javax.crypto.CryptoAllPermission").getDeclaredField("INSTANCE");
-                }
+                final Field permsField = Class.forName("javax.crypto.CryptoPermissions").getDeclaredField("perms");;
+                final Field instanceField = Class.forName("javax.crypto.CryptoAllPermission").getDeclaredField("INSTANCE");;
                 permsField.setAccessible(true);
                 ((Map<?, ?>) permsField.get(defaultPolicy)).clear();
                 
