@@ -6,3 +6,4 @@ mapping.proguard
 .project
 .settings
 !.gitignore
+.*.swp
