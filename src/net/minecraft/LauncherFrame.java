@@ -5,11 +5,12 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.security.MessageDigest;
 
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.NonOptionArgumentSpec;
@@ -48,24 +49,20 @@ public class LauncherFrame extends Frame {
         this.loginForm = new LoginForm(this);
         this.setLayout(new BorderLayout());
         this.add(this.loginForm, "Center");
-        this.loginForm.setPreferredSize(new Dimension(900, 580));
         
-        setExtendedState(getExtendedState() | Frame.MAXIMIZED_BOTH);
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        int width = gd.getDisplayMode().getWidth();
+        int height = gd.getDisplayMode().getHeight();
+        this.loginForm.setPreferredSize(new Dimension(width*17/20, height*4/5));
+
         pack();
         setLocationRelativeTo(null);
-        //frame.removeAll();
-        //frame.setExtendedState(frame.getExtendedState() | Frame.MAXIMIZED_BOTH); //maximize
-        //frame.setLocationRelativeTo(null);
-        //frame.setLayout(new BorderLayout());
-        //frame.add(this, "Center");
-        //frame.pack(); // does it do for this too?
-        //frame.validate();
         try {
-            /*frame.*/setIconImage(ImageIO.read(LauncherFrame.class.getResource("favicon.png")));
+            setIconImage(ImageIO.read(LauncherFrame.class.getResource("favicon.png")));
         } catch (IOException e1) {
             e1.printStackTrace();
         }
-        /*frame.*/addWindowListener(new WindowAdapter() {
+        addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent arg0) {
                 new Thread() {
                     public void run() {
@@ -99,10 +96,8 @@ public class LauncherFrame extends Frame {
             this.launcher = new Launcher();
             this.launcher.customParameters.put("userName", userName);
             this.launcher.init();
-            //frame.removeAll();
             this.removeAll();
             this.add(this.launcher, "Center");
-            //frame.validate();
             this.launcher.start();
             this.loginForm = null;
             this.setTitle("2Toasty Minecraft");
@@ -116,7 +111,7 @@ public class LauncherFrame extends Frame {
     public void login(String userName, String password) {
         try {
             String parameters = "user=" + URLEncoder.encode(userName, "UTF-8") + "&pass=" + URLEncoder.encode(password, "UTF-8") + "&version=" + 14;
-            String result = Util.executePost("https://2toast.net/minecraft/login.php", parameters);
+            String result = Util.executePost("https://auth.2toast.net/minecraft/login.php", parameters);
             if (result == null) {
                 showError("Can't connect to 2toast.net.");
                 this.loginForm.setNoNetwork();
@@ -134,17 +129,15 @@ public class LauncherFrame extends Frame {
                 this.loginForm.setNoNetwork();
                 return;
             }
-            System.out.println("Logged in as " + values[2]);// + "', sid "+values[3]);
+            System.out.println("Logged in as " + values[2]);
             this.launcher = new Launcher();
             this.launcher.customParameters.put("userName", values[2].trim());
             this.launcher.customParameters.put("latestVersion", values[0].trim());
             this.launcher.customParameters.put("downloadTag", values[1].trim());
             this.launcher.customParameters.put("sessionId", values[3].trim());
             this.launcher.init();
-            //frame.removeAll();
             this.removeAll();
             this.add(this.launcher, "Center");
-            //frame.validate();
             this.launcher.start();
             this.loginForm.loginOk();
             this.loginForm = null;
