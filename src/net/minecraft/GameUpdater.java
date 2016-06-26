@@ -184,8 +184,10 @@ public class GameUpdater implements Runnable {
         downloadTime = System.currentTimeMillis() - downloadTime;
         System.out.println("Got "+this.latestVersion+".json in "+downloadTime+"ms");
         
+        // Wireshark doesn't show a second fetch -- seems ok. (Rather than reading saved file)
         InputStream versionJsonStream = modSource.getInputStream();
         String versionJson = convertStreamToString(versionJsonStream);
+        versionJsonStream.close();
         
         MinecraftVersion currentVersion = new Gson().fromJson(versionJson, MinecraftVersion.class);
     // TODO: past this point.

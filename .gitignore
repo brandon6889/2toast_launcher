@@ -7,3 +7,4 @@ mapping.proguard
 .settings
 !.gitignore
 .*.swp
+.*.kate-swp
