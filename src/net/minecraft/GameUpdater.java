@@ -151,38 +151,53 @@ public class GameUpdater implements Runnable {
 
     protected void loadJarURLs() throws Exception {
         this.state = 2;
+        byte[] buffer = new byte[65536];
+        int bufferSize;
+        long downloadTime;
         
-        // ***************************************** 2TOAST JSON ***************************************** //
-        
+        // TODO: Mark/get latest version in offline mode, only fetch data when online.
         if (this.latestVersion == null || this.latestVersion.equals("")) throw new Exception("Unknown Version");
         
-        URLConnection modSource;
+        // TODO: We also need to fetch assets for new MC.. make new function for this..
         //modSource = new URL("http://2toast.net/minecraft/assets/indexes/"+this.latestVersion+".json").openConnection();
+        
+        String jsonPath = Util.getWorkingDirectory() + File.separator + "bin" + File.separator;
+        File dir = new File(jsonPath);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        jsonPath += this.latestVersion + ".json";
+        
+        URLConnection modSource;
         modSource = new URL("http://2toast.net/minecraft/versions/"+this.latestVersion+"/"+this.latestVersion+".json").openConnection();
         if (modSource instanceof HttpURLConnection) {
             modSource.setRequestProperty("Cache-Control", "no-cache");
             modSource.connect();
         }
+        InputStream inputstream = getJarInputStream(this.latestVersion+".json", modSource);
+        FileOutputStream fos = new FileOutputStream(jsonPath);
+        downloadTime = System.currentTimeMillis();
+        while ((bufferSize = inputstream.read(buffer, 0, buffer.length)) != -1)
+            fos.write(buffer, 0, bufferSize);
+        inputstream.close();
+        fos.close();
+        downloadTime = System.currentTimeMillis() - downloadTime;
+        System.out.println("Got "+this.latestVersion+".json in "+downloadTime+"ms");
         
         InputStream versionJsonStream = modSource.getInputStream();
         String versionJson = convertStreamToString(versionJsonStream);
         
         MinecraftVersion currentVersion = new Gson().fromJson(versionJson, MinecraftVersion.class);
+    // TODO: past this point.
+    if (true)
+    throw new Exception("bye");
         
-        //String jsonPath = Util.getWorkingDirectory() + File.separator + "bin" + File.separator + "2toast_" + this.latestVersion + ".json";
         //String json = Util.readFile(new File(jsonPath));
         //MinecraftVersion currentVersion = new Gson().fromJson(json, MinecraftVersion.class);
-        
-        // UNTOUCHED CODE BELOW ******************** 2TOAST JSON ******************** UNTOUCHED CODE BELOW //
-        
-        String jarList = "lwjgl.jar, jinput.jar, lwjgl_util.jar, minecraft.jar";
 
-        //URLConnection modSource;
-        if (this.latestVersion != null && !this.latestVersion.equals("")) {
-            modSource = new URL("http://stapleton.tk/download/"+this.latestVersion+"/modlist.txt").openConnection();
-        } else {
-            modSource = new URL("http://stapleton.tk/download/modlist.txt").openConnection();
-        }
+        String jarList = "minecraft.jar, otherPlaceholder.jar";
+        
+        modSource = new URL("http://2toast.net/minecraft/versions/"+this.latestVersion+"/modlist.txt").openConnection();
         if (modSource instanceof HttpURLConnection) {
             modSource.setRequestProperty("Cache-Control", "no-cache");
             modSource.connect();
@@ -202,14 +217,8 @@ public class GameUpdater implements Runnable {
 
         this.urlList = new URL[jarCount];
         
-        URL path, modPath;
-        if (this.latestVersion != null && !this.latestVersion.equals("")) {
-            path = new URL("http://stapleton.tk/download/"+this.latestVersion+"/");
-            modPath = new URL("http://stapleton.tk/download/"+this.latestVersion+"/mod/");
-        } else {
-            path = new URL("http://stapleton.tk/download/");
-            modPath = new URL("http://stapleton.tk/download/mod/");
-        }
+        URL path = new URL("http://2toast.net/minecraft/"+this.latestVersion+"/");
+        URL modPath = new URL("http://2toast.net/minecraft/mods/"+this.latestVersion+"/");
         
         for (int i = 0; i < jarCount - 1; i++) {
             String currentFile = jar.nextToken();
