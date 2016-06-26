@@ -172,6 +172,15 @@ public class GameUpdater implements Runnable {
         }
         jsonPath += this.latestVersion + ".json";
         
+        String assetJsonPath = Util.getWorkingDirectory() + File.separator + "assets" + File.separator + "indexes" + File.separator;
+        dir = new File(assetJsonPath);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        assetJsonPath += this.latestVersion+".json";
+        
+        System.out.println("Launching Minecraft "+this.latestVersion);
+        
         // Get json config
         URLConnection modSource;
         modSource = new URL("http://2toast.net/minecraft/versions/"+this.latestVersion+"/"+this.latestVersion+".json").openConnection();
@@ -187,7 +196,23 @@ public class GameUpdater implements Runnable {
         inputstream.close();
         fos.close();
         downloadTime = System.currentTimeMillis() - downloadTime;
-        System.out.println("Got "+this.latestVersion+".json in "+downloadTime+"ms");
+        System.out.println("Got library index in "+downloadTime+"ms");
+        
+        // Get asset json
+        modSource = new URL("http://2toast.net/minecraft/assets/indexes/"+this.latestVersion+".json").openConnection();
+        if (modSource instanceof HttpURLConnection) {
+            modSource.setRequestProperty("Cache-Control", "no-cache");
+            modSource.connect();
+        }
+        inputstream = getJarInputStream(this.latestVersion+".json", modSource);
+        fos = new FileOutputStream(assetJsonPath);
+        downloadTime = System.currentTimeMillis();
+        while ((bufferSize = inputstream.read(buffer, 0, buffer.length)) != -1)
+            fos.write(buffer, 0, bufferSize);
+        inputstream.close();
+        fos.close();
+        downloadTime = System.currentTimeMillis() - downloadTime;
+        System.out.println("Got asset index in "+downloadTime+"ms");
         
         // Parse json config. Paths in format org/apache/commons/.../.jar
         String versionJson = Util.readFile(new File(jsonPath));
@@ -207,6 +232,13 @@ public class GameUpdater implements Runnable {
                     libraryPathList.add(newPath);
                 }
             }
+        }
+        
+        // Parse asset json.
+        versionJson = Util.readFile(new File(assetJsonPath));
+        MinecraftAssets assets = gson.fromJson(versionJson, MinecraftAssets.class);
+        for (MinecraftAssetsObject object : assets.objects) {
+            System.out.println("asset "+object.hash+" "+object.name);
         }
     if (true)
     throw new Exception("bye");
