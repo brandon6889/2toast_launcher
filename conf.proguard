@@ -8,11 +8,16 @@
 -dontskipnonpubliclibraryclassmembers
 -target 1.8
 -dontshrink
+#-dontoptimize
 -printmapping mapping.proguard
 -classobfuscationdictionary util/classobf.dic
 -dontusemixedcaseclassnames
 -keeppackagenames
 
+# GSON compatibility
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class sun.misc.Unsafe { *; }
 
 -keep public class net.minecraft.LauncherFrame{ 
    public <init>(...);

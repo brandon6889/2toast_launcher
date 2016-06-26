@@ -73,6 +73,7 @@ public class GameUpdater implements Runnable {
     protected boolean lzmaSupported;
     protected boolean pack200Supported;
     protected boolean certificateRefused;
+    protected Gson gson = new Gson();
 
     protected static boolean natives_loaded = false;
     private String latestVersion;
@@ -190,7 +191,7 @@ public class GameUpdater implements Runnable {
         
         // Parse json config. Paths in format org/apache/commons/.../.jar
         String versionJson = Util.readFile(new File(jsonPath));
-        MinecraftVersion currentVersion = new Gson().fromJson(versionJson, MinecraftVersion.class);
+        MinecraftVersion currentVersion = gson.fromJson(versionJson, MinecraftVersion.class);
         for (MinecraftLibrary library : currentVersion.libraries) {
             if (library.allow()) {
                 String libPath = library.name.substring(0, library.name.indexOf(":"));
