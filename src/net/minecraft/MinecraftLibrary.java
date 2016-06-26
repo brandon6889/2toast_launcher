@@ -17,13 +17,13 @@ public class MinecraftLibrary {
             for (int j = 0; j < this.rules.size(); j++) {
                 Rule r = (Rule)this.rules.get(j);
                 if (r.action.equals("disallow")) {
-                    if (r.os != null && (r.os.name() == null || r.os.name().trim().equals("") || r.os.name().toLowerCase().equals(Util.getPlatform().toString()))) {
+                    if (r.os != null && (r.os.name == null || r.os.name.trim().equals("") || r.os.name.toLowerCase().equals(Util.getPlatform().toString()))) {
                         flag = false;
                         break;
                     }
                 }
                 else {
-                    if (r.os != null && (r.os.name() == null || r.os.name().trim().equals("") || r.os.name().toLowerCase().equals(Util.getPlatform().toString()))) {
+                    if (r.os != null && (r.os.name == null || r.os.name.trim().equals("") || r.os.name.toLowerCase().equals(Util.getPlatform().toString()))) {
                         flag = true;
                     }
                     else if (r.os == null) {

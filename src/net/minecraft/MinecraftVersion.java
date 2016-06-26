@@ -1,6 +1,6 @@
 package net.minecraft;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class MinecraftVersion {
     public String minecraftArguments;
@@ -12,5 +12,5 @@ public class MinecraftVersion {
     public String releaseTime;
     public String assets;
     public int minimumLauncherVersion;
-    public ArrayList<MinecraftLibrary> libraries;
+    public LinkedList<MinecraftLibrary> libraries;
 }

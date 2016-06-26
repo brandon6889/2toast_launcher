@@ -1,4 +1,5 @@
 bin/*
+debug/*
 dist/*
 obf/*
 mapping.proguard

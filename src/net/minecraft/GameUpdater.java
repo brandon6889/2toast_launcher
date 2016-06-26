@@ -32,6 +32,7 @@ import java.security.PrivilegedExceptionAction;
 import java.security.SecureClassLoader;
 import java.security.cert.Certificate;
 import java.util.Enumeration;
+import java.util.LinkedList;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.jar.JarEntry;
@@ -60,6 +61,8 @@ public class GameUpdater implements Runnable {
     public int totalSizeExtract;
     public static boolean force = false;
     protected URL[] urlList;
+    protected LinkedList<String> libraryPathList = new LinkedList();
+    protected LinkedList<String> nativesPathList = new LinkedList();
     private static ClassLoader classLoader;
     protected Thread loaderThread;
     protected Thread animationThread;
@@ -69,9 +72,7 @@ public class GameUpdater implements Runnable {
     protected int state;
     protected boolean lzmaSupported;
     protected boolean pack200Supported;
-    protected String[] genericErrorMessage = { "An error occured while loading the applet.", "Please contact support to resolve this issue.", "<placeholder for error message>" };
     protected boolean certificateRefused;
-    protected String[] certificateRefusedMessage = { "Permissions for Applet Refused.", "Please accept the permissions dialog to allow", "the applet to continue the loading process." };
 
     protected static boolean natives_loaded = false;
     private String latestVersion;
@@ -157,6 +158,8 @@ public class GameUpdater implements Runnable {
         
         // TODO: Mark/get latest version in offline mode, only fetch data when online.
         if (this.latestVersion == null || this.latestVersion.equals("")) throw new Exception("Unknown Version");
+        //String json = Util.readFile(new File(jsonPath));
+        //MinecraftVersion currentVersion = new Gson().fromJson(json, MinecraftVersion.class);
         
         // TODO: We also need to fetch assets for new MC.. make new function for this..
         //modSource = new URL("http://2toast.net/minecraft/assets/indexes/"+this.latestVersion+".json").openConnection();
@@ -168,6 +171,7 @@ public class GameUpdater implements Runnable {
         }
         jsonPath += this.latestVersion + ".json";
         
+        // Get json config
         URLConnection modSource;
         modSource = new URL("http://2toast.net/minecraft/versions/"+this.latestVersion+"/"+this.latestVersion+".json").openConnection();
         if (modSource instanceof HttpURLConnection) {
@@ -184,18 +188,27 @@ public class GameUpdater implements Runnable {
         downloadTime = System.currentTimeMillis() - downloadTime;
         System.out.println("Got "+this.latestVersion+".json in "+downloadTime+"ms");
         
-        // Wireshark doesn't show a second fetch -- seems ok. (Rather than reading saved file)
-        InputStream versionJsonStream = modSource.getInputStream();
-        String versionJson = convertStreamToString(versionJsonStream);
-        versionJsonStream.close();
-        
+        // Parse json config. Paths in format org/apache/commons/.../.jar
+        String versionJson = Util.readFile(new File(jsonPath));
         MinecraftVersion currentVersion = new Gson().fromJson(versionJson, MinecraftVersion.class);
-    // TODO: past this point.
+        for (MinecraftLibrary library : currentVersion.libraries) {
+            if (library.allow()) {
+                String libPath = library.name.substring(0, library.name.indexOf(":"));
+                libPath = libPath.replace(".", "/").replace(":", "/");
+                String libName = library.name.substring(library.name.indexOf(":")+1, library.name.lastIndexOf(":"));
+                String libVer = library.name.substring(library.name.lastIndexOf(":")+1);
+                String newPath;
+                if (library.natives != null) {
+                    newPath = libPath+"/"+libName+"/"+libVer+"/"+libName+"-"+libVer+"-natives-"+Util.getPlatform().toString()+".jar";
+                    nativesPathList.add(newPath);
+                } else {
+                    newPath = libPath+"/"+libName+"/"+libVer+"/"+libName+"-"+libVer+".jar";
+                    libraryPathList.add(newPath);
+                }
+            }
+        }
     if (true)
     throw new Exception("bye");
-        
-        //String json = Util.readFile(new File(jsonPath));
-        //MinecraftVersion currentVersion = new Gson().fromJson(json, MinecraftVersion.class);
 
         String jarList = "minecraft.jar, otherPlaceholder.jar";
         
