@@ -1,0 +1,5 @@
+This regex pattern was used to convert the assets JSON file into real JSON.
+
+Search \"([\_\/\.a-zA-Z0-9]*\/[\_\/\.a-zA-Z0-9]*)\"\: \{
+Replace {
+      "name": "\1",
