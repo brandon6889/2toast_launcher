@@ -60,9 +60,10 @@ public class GameUpdater implements Runnable {
     public int currentSizeExtract;
     public int totalSizeExtract;
     public static boolean force = false;
-    protected URL[] urlList;
     protected LinkedList<String> libraryPathList = new LinkedList();
     protected LinkedList<String> nativesPathList = new LinkedList();
+    protected LinkedList<String> modPathList = new LinkedList();
+    protected MinecraftAssets assets;
     private static ClassLoader classLoader;
     protected Thread loaderThread;
     protected Thread animationThread;
@@ -139,16 +140,6 @@ public class GameUpdater implements Runnable {
         String out = s.hasNext() ? s.next() : "";
         s.close();
         return out;
-    }
-
-    protected String trimExtensionByCapabilities(String file) {
-        if (!this.pack200Supported) {
-            file = file.replaceAll(".pack", "");
-        }
-        if (!this.lzmaSupported) {
-            file = file.replaceAll(".lzma", "");
-        }
-        return file;
     }
 
     protected void loadJarURLs() throws Exception {
@@ -236,68 +227,22 @@ public class GameUpdater implements Runnable {
         
         // Parse asset json.
         versionJson = Util.readFile(new File(assetJsonPath));
-        MinecraftAssets assets = gson.fromJson(versionJson, MinecraftAssets.class);
-        for (MinecraftAssetsObject object : assets.objects) {
-            System.out.println("asset "+object.hash+" "+object.name);
-        }
-    if (true)
-    throw new Exception("bye");
-
-        String jarList = "minecraft.jar, otherPlaceholder.jar";
+        assets = gson.fromJson(versionJson, MinecraftAssets.class);
         
-        modSource = new URL("http://2toast.net/minecraft/versions/"+this.latestVersion+"/modlist.txt").openConnection();
+        // Fetch mods list. Only stores filenames from colon-delimited file.
+        modSource = new URL("http://2toast.net/minecraft/mods/"+this.latestVersion+".txt").openConnection();
         if (modSource instanceof HttpURLConnection) {
             modSource.setRequestProperty("Cache-Control", "no-cache");
             modSource.connect();
         }
         InputStream modListStream = modSource.getInputStream();
         String modList = convertStreamToString(modListStream);
-
         StringTokenizer mod = new StringTokenizer(modList, ":");
         int modCount = mod.countTokens();
         for (int i = 0; i < modCount; i++) {
-            jarList += ", " + mod.nextToken();
+            modPathList.add(mod.nextToken());
         }
-
-        jarList = trimExtensionByCapabilities(jarList);
-        StringTokenizer jar = new StringTokenizer(jarList, ", ");
-        int jarCount = jar.countTokens() + 1;
-
-        this.urlList = new URL[jarCount];
-        
-        URL path = new URL("http://2toast.net/minecraft/"+this.latestVersion+"/");
-        URL modPath = new URL("http://2toast.net/minecraft/mods/"+this.latestVersion+"/");
-        
-        for (int i = 0; i < jarCount - 1; i++) {
-            String currentFile = jar.nextToken();
-            if (currentFile.endsWith(".mod.jar")) {
-                this.urlList[i] = new URL(modPath, currentFile);
-            } else if (currentFile.endsWith(".jar")) {
-                this.urlList[i] = new URL(path, currentFile);
-            } else {
-                this.urlList[i] = new URL(modPath, currentFile);
-            }
-        }
-
-        String osName = System.getProperty("os.name");
-        String nativeJar = null;
-        if (osName.startsWith("Win")) {
-            nativeJar = "windows_natives.jar";
-        } else if (osName.startsWith("Linux")) {
-            nativeJar = "linux_natives.jar";
-        } else if (osName.startsWith("Mac")) {
-            nativeJar = "macosx_natives.jar";
-        } else if ((osName.startsWith("Solaris")) || (osName.startsWith("SunOS"))) {
-            nativeJar = "solaris_natives.jar";
-        } else {
-            fatalErrorOccured("OS (" + osName + ") not supported", null);
-        }
-        if (nativeJar == null) {
-            fatalErrorOccured("no lwjgl natives files found", null);
-        } else {
-            nativeJar = trimExtensionByCapabilities(nativeJar);
-            this.urlList[(jarCount - 1)] = new URL(path, nativeJar);
-        }
+        modListStream.close();
     }
 
     @SuppressWarnings("unchecked")
@@ -355,7 +300,7 @@ public class GameUpdater implements Runnable {
                         }
                     }
                 }
-                updateClassPath(dir);
+                //updateClassPath(dir);
                 this.state = 10;
             } catch (AccessControlException ace) {
                 fatalErrorOccured(ace.getMessage(), ace);
@@ -386,73 +331,6 @@ public class GameUpdater implements Runnable {
         DataOutputStream dos = new DataOutputStream(new FileOutputStream(file));
         dos.writeUTF(version);
         dos.close();
-    }
-
-    protected void updateClassPath(File dir) throws Exception {
-        this.state = 6;
-        this.percentage = 100;
-        URL[] urls = new URL[this.urlList.length];
-        for (int i = 0; i < this.urlList.length; i++) {
-            urls[i] = new File(dir, getJarName(this.urlList[i])).toURI().toURL();
-        }
-
-        if (classLoader == null) {
-            classLoader = new URLClassLoader(urls) {
-                protected PermissionCollection getPermissions(CodeSource codesource) {
-                    PermissionCollection perms = null;
-                    try {
-                        Method method = SecureClassLoader.class.getDeclaredMethod("getPermissions", new Class[] { CodeSource.class });
-
-                        method.setAccessible(true);
-                        perms = (PermissionCollection) method.invoke(getClass().getClassLoader(), new Object[] { codesource });
-
-                        String host = "2toast.net";
-                        if ((host != null) && (host.length() > 0)) {
-                            perms.add(new SocketPermission(host, "connect,accept"));
-                        } else {
-                            codesource.getLocation().getProtocol().equals("file");
-                        }
-                        perms.add(new FilePermission("<<ALL FILES>>", "read"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return perms;
-                }
-
-            };
-        }
-
-        String path = dir.getAbsolutePath();
-        if (!path.endsWith(File.separator)) {
-            path = path + File.separator;
-        }
-        unloadNatives(path);
-        System.setProperty("org.lwjgl.librarypath", path + "natives");
-        System.setProperty("net.java.games.input.librarypath", path + "natives");
-        natives_loaded = true;
-    }
-
-    @SuppressWarnings("rawtypes")
-    private void unloadNatives(String nativePath) {
-        if (!natives_loaded) {
-            return;
-        }
-        try {
-            Field field = ClassLoader.class.getDeclaredField("loadedLibraryNames");
-            field.setAccessible(true);
-            Vector libs = (Vector) field.get(getClass().getClassLoader());
-            String path = new File(nativePath).getCanonicalPath();
-            for (int i = 0; i < libs.size(); i++) {
-                String s = (String) libs.get(i);
-                if (s.startsWith(path)) {
-                    libs.remove(i);
-                    i--;
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public Applet createApplet() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
