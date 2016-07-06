@@ -65,10 +65,6 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         this.gameUpdater = new GameUpdater(latestVersion);
     }
 
-    public boolean canPlayOffline() {
-        return this.gameUpdater.canPlayOffline();
-    }
-
     public void init() {
         if (this.applet != null) {
             this.applet.init();

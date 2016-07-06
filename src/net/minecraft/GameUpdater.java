@@ -113,7 +113,7 @@ public class GameUpdater implements Runnable {
         case 1:
             return "Initializing loader";
         case 2:
-            return "Determining packages to load";
+            return "Fetching configuration";
         case 3:
             return "Checking cache for existing files";
         case 4:
@@ -148,13 +148,8 @@ public class GameUpdater implements Runnable {
         int bufferSize;
         long downloadTime;
         
-        // TODO: Mark/get latest version in offline mode, only fetch data when online.
+        // Offline play not supported. Get legit MC.
         if (this.latestVersion == null || this.latestVersion.equals("")) throw new Exception("Unknown Version");
-        //String json = Util.readFile(new File(jsonPath));
-        //MinecraftVersion currentVersion = new Gson().fromJson(json, MinecraftVersion.class);
-        
-        // TODO: We also need to fetch assets for new MC.. make new function for this..
-        //modSource = new URL("http://2toast.net/minecraft/assets/indexes/"+this.latestVersion+".json").openConnection();
         
         String jsonPath = Util.getWorkingDirectory() + File.separator + "bin" + File.separator;
         File dir = new File(jsonPath);
@@ -248,7 +243,6 @@ public class GameUpdater implements Runnable {
     @SuppressWarnings("unchecked")
     public void run() {
         init();
-        this.state = 3;
         this.percentage = 5;
         try {
             try {
@@ -344,7 +338,6 @@ public class GameUpdater implements Runnable {
         this.state = 4;
         int[] fileSizes = new int[this.urlList.length];
         for (int i = 0; i < this.urlList.length; i++) {
-            //System.out.println(this.urlList[i]);
             URLConnection urlconnection = this.urlList[i].openConnection();
             urlconnection.setDefaultUseCaches(false);
             if ((urlconnection instanceof HttpURLConnection)) {
@@ -654,32 +647,5 @@ public class GameUpdater implements Runnable {
         if (e != null) {
             System.out.println(generateStacktrace(e));
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    public boolean canPlayOffline() {
-        try {
-            @SuppressWarnings("rawtypes")
-            String path = (String) AccessController.doPrivileged(new PrivilegedExceptionAction() {
-                public Object run() throws Exception {
-                    return Util.getWorkingDirectory() + File.separator + "bin" + File.separator;
-                }
-            });
-            File dir = new File(path);
-            if (!dir.exists()) {
-                return false;
-            }
-            dir = new File(dir, "version");
-            if (!dir.exists()) {
-                return false;
-            }
-            String version = readVersionFile(dir);
-            if ((version != null) && (version.length() > 0))
-                return true;
-            return false;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 }

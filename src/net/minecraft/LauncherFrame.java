@@ -159,12 +159,6 @@ public class LauncherFrame extends Frame {
         validate();
     }
 
-    public boolean canPlayOffline(String userName) {
-        Launcher launcher = new Launcher();
-        launcher.init(userName, null, null, null);
-        return launcher.canPlayOffline();
-    }
-
     public static void main(String[] args) {
         OptionParser parser = new OptionParser();
         parser.allowsUnrecognizedOptions();

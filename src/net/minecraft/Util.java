@@ -128,7 +128,7 @@ public class Util {
     	}
         
         HttpsURLConnection connection = null;
-        try { // Load BAMTecK Root CA
+        try { // Load root CA
             KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
             ByteArrayInputStream inStream = new ByteArrayInputStream(
                     read(MinecraftLauncher.class.getResourceAsStream("sanders2016.ks")));

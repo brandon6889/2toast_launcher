@@ -55,7 +55,6 @@ public class LoginForm extends Panel {
     private Checkbox updateBox;
     private Button launchButton;
     private Button retryButton;
-    private Button offlineButton;
     private Label errorLabel;
     private boolean outdated;
     private VolatileImage img;
@@ -80,7 +79,6 @@ public class LoginForm extends Panel {
         this.updateBox = new Checkbox("Force update");
         this.launchButton = new Button("Login");
         this.retryButton = new Button("Try again");
-        this.offlineButton = new Button("Play offline");
         this.errorLabel = new Label("", 1);
         this.outdated = false;
         this.launcher = launcherFrame;
@@ -101,11 +99,6 @@ public class LoginForm extends Panel {
                 LoginForm.this.removeAll();
                 LoginForm.this.add(LoginForm.this.buildLoginPanel(), loginPanelConstraints);
                 LoginForm.this.validate();
-            }
-        });
-        this.offlineButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ae) {
-                launcher.playCached(LoginForm.this.userName.getText());
             }
         });
         this.launchButton.addActionListener(new ActionListener() {
@@ -379,12 +372,7 @@ public class LoginForm extends Panel {
         loginPanel.add(new Panel(), "Center");
         panel.add(new Panel(), "Center");
         loginPanel.add(this.retryButton, "East");
-        loginPanel.add(this.offlineButton, "West");
-        boolean canPlayOffline = this.launcher.canPlayOffline(this.userName.getText());
-        this.offlineButton.setEnabled(canPlayOffline);
-        if (!canPlayOffline) {
-            panel.add(new Label("Play online once to enable offline"), "Center");
-        }
+        panel.add(new Label(" Offline mode not supported."), "Center");
         panel.add(loginPanel, "South");
         this.errorLabel.setFont(new Font(null, 1, 16));
         this.errorLabel.setForeground(new Color(29, 77, 126));
