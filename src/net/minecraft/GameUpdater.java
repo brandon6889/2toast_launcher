@@ -69,10 +69,10 @@ public class GameUpdater implements Runnable {
     protected Thread animationThread;
     public boolean fatalError;
     public String fatalErrorDescription;
-    protected String subtaskMessage;
+    protected String subtaskMessage = "";
     protected int state;
-    protected boolean lzmaSupported;
-    protected boolean pack200Supported;
+    protected boolean lzmaSupported = false;
+    protected boolean pack200Supported = false;
     protected boolean certificateRefused;
     protected Gson gson = new Gson();
 
@@ -80,15 +80,12 @@ public class GameUpdater implements Runnable {
     private String latestVersion;
 
     public GameUpdater(String latestVersion) {
-        this.subtaskMessage = "";
         this.state = 1;
-        this.lzmaSupported = false;
-        this.pack200Supported = false;
+        this.percentage = 0;
         this.latestVersion = latestVersion;
     }
 
     public void init() {
-        this.state = 1;
         try {
             Class.forName("LZMA.LzmaInputStream");
             this.lzmaSupported = true;
@@ -115,9 +112,9 @@ public class GameUpdater implements Runnable {
         case 2:
             return "Fetching configuration";
         case 3:
-            return "Checking cache for existing files";
+            return "Checking for existing files";
         case 4:
-            return "Downloading packages";
+            return "Downloading libraries";
         case 5:
             return "Extracting downloaded packages";
         case 6:
@@ -165,7 +162,7 @@ public class GameUpdater implements Runnable {
         }
         assetJsonPath += this.latestVersion+".json";
         
-        System.out.println("Launching Minecraft "+this.latestVersion);
+        System.out.println("Fetching config for Minecraft "+this.latestVersion);
         
         // Get json config
         URLConnection modSource;
@@ -225,6 +222,7 @@ public class GameUpdater implements Runnable {
         assets = gson.fromJson(versionJson, MinecraftAssets.class);
         
         // Fetch mods list. Only stores filenames from colon-delimited file.
+        downloadTime = System.currentTimeMillis();
         modSource = new URL("http://2toast.net/minecraft/mods/"+this.latestVersion+".txt").openConnection();
         if (modSource instanceof HttpURLConnection) {
             modSource.setRequestProperty("Cache-Control", "no-cache");
@@ -238,21 +236,16 @@ public class GameUpdater implements Runnable {
             modPathList.add(mod.nextToken());
         }
         modListStream.close();
+        downloadTime = System.currentTimeMillis() - downloadTime;
+        System.out.println("Got mod index in "+downloadTime+"ms");
     }
 
     @SuppressWarnings("unchecked")
     public void run() {
         init();
-        this.percentage = 5;
         try {
             try {
-                loadJarURLs();
-                @SuppressWarnings("rawtypes")
-                String path = (String) AccessController.doPrivileged(new PrivilegedExceptionAction() {
-                    public Object run() throws Exception {
-                        return Util.getWorkingDirectory() + File.separator + "bin" + File.separator;
-                    }
-                });
+                String path =  Util.getWorkingDirectory() + File.separator + "bin" + File.separator;
                 File dir = new File(path);
                 if (!dir.exists()) {
                     dir.mkdirs();
@@ -271,6 +264,8 @@ public class GameUpdater implements Runnable {
                     modDir.mkdirs();
                 if (!coreModDir.exists())
                     coreModDir.mkdirs();
+                
+                loadJarURLs();
                 if (this.latestVersion != null) {
                     File versionFile = new File(dir, "version");
                     boolean cacheAvailable = false;
