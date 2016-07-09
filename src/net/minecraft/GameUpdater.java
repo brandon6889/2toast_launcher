@@ -262,33 +262,31 @@ public class GameUpdater implements Runnable {
         try {
             try {
                 loadJarURLs();
-                if (this.latestVersion != null) {
-                    File versionFile = new File(dir, "version");
-                    boolean cacheAvailable = false;
-                    if ((!force) && (versionFile.exists()) && ((this.latestVersion.equals("-1")) || (this.latestVersion.equals(readVersionFile(versionFile))))) {
-                        System.out.println("Found cached version " + this.latestVersion);
-                        cacheAvailable = true;
-                        this.percentage = 99;
+
+                File versionFile = new File(dir, "version");
+                boolean cacheAvailable = false;
+                if ((!force) && (versionFile.exists()) && ((this.latestVersion.equals("-1")) || (this.latestVersion.equals(readVersionFile(versionFile))))) {
+                    System.out.println("Found cached version " + this.latestVersion);
+                    cacheAvailable = true;
+                    this.percentage = 99;
+                }
+                if ((!cacheAvailable) || (force)) {
+                    if (versionFile.exists() && !(this.latestVersion.equals(readVersionFile(versionFile))))
+                        System.out.println("Updating from version " + readVersionFile(versionFile) + " to " + this.latestVersion);
+                    else {
+                        System.out.println("Downloading version " + this.latestVersion);
                     }
-                    if ((!cacheAvailable) || (force)) {
-                        if (versionFile.exists() && !(this.latestVersion.equals(readVersionFile(versionFile))))
-                            System.out.println("Updating from version " + readVersionFile(versionFile) + " to " + this.latestVersion);
-                        else {
-                            System.out.println("Downloading version " + this.latestVersion);
-                        }
-                        downloadLibraries(path);
-                        downloadAssets(path);
-                        downloadMods(path);
-                        downloadGame(path);
-                        extractJars(path);
-                        extractNatives(path);
-                        if (this.latestVersion != null) {
-                            this.percentage = 100;
-                            writeVersionFile(versionFile, this.latestVersion);
-                        }
+                    downloadLibraries(path);
+                    downloadAssets(path);
+                    downloadMods(path);
+                    downloadGame(path);
+                    extractJars(path);
+                    extractNatives(path);
+                    if (this.latestVersion != null) {
+                        this.percentage = 100;
+                        writeVersionFile(versionFile, this.latestVersion);
                     }
                 }
-                //updateClassPath(dir);
                 this.state = 10;
             } catch (AccessControlException ace) {
                 fatalErrorOccured(ace.getMessage(), ace);
