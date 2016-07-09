@@ -32,6 +32,7 @@ import java.security.PrivilegedExceptionAction;
 import java.security.SecureClassLoader;
 import java.security.cert.Certificate;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -55,8 +56,6 @@ public class GameUpdater implements Runnable {
     public static final int STATE_START_REAL_APPLET = 9;
     public static final int STATE_DONE = 10;
     public int percentage;
-    public int currentSizeDownload;
-    public int totalSizeDownload;
     public int currentSizeExtract;
     public int totalSizeExtract;
     public static boolean force = false;
@@ -78,6 +77,7 @@ public class GameUpdater implements Runnable {
 
     protected static boolean natives_loaded = false;
     private String latestVersion;
+    private final String serverURL = "http://2toast.net/minecraft/";
 
     public GameUpdater(String latestVersion) {
         this.state = 1;
@@ -181,7 +181,7 @@ public class GameUpdater implements Runnable {
         
         // Get json config
         URLConnection modSource;
-        modSource = new URL("http://2toast.net/minecraft/versions/"+this.latestVersion+"/"+this.latestVersion+".json").openConnection();
+        modSource = new URL(serverURL+"versions/"+this.latestVersion+"/"+this.latestVersion+".json").openConnection();
         if (modSource instanceof HttpURLConnection) {
             modSource.setRequestProperty("Cache-Control", "no-cache");
             modSource.connect();
@@ -195,9 +195,10 @@ public class GameUpdater implements Runnable {
         fos.close();
         downloadTime = System.currentTimeMillis() - downloadTime;
         System.out.println("Got library index in "+downloadTime+"ms");
+        this.percentage = 1;
         
         // Get asset json
-        modSource = new URL("http://2toast.net/minecraft/assets/indexes/"+this.latestVersion+".json").openConnection();
+        modSource = new URL(serverURL+"assets/indexes/"+this.latestVersion+".json").openConnection();
         if (modSource instanceof HttpURLConnection) {
             modSource.setRequestProperty("Cache-Control", "no-cache");
             modSource.connect();
@@ -211,6 +212,7 @@ public class GameUpdater implements Runnable {
         fos.close();
         downloadTime = System.currentTimeMillis() - downloadTime;
         System.out.println("Got asset index in "+downloadTime+"ms");
+        this.percentage = 2;
         
         // Parse json config. Paths in format org/apache/commons/.../.jar
         String versionJson = Util.readFile(new File(jsonPath));
@@ -238,7 +240,7 @@ public class GameUpdater implements Runnable {
         
         // Fetch mods list. Only stores filenames from colon-delimited file.
         downloadTime = System.currentTimeMillis();
-        modSource = new URL("http://2toast.net/minecraft/mods/"+this.latestVersion+".txt").openConnection();
+        modSource = new URL(serverURL+"mods/"+this.latestVersion+".txt").openConnection();
         if (modSource instanceof HttpURLConnection) {
             modSource.setRequestProperty("Cache-Control", "no-cache");
             modSource.connect();
@@ -253,6 +255,7 @@ public class GameUpdater implements Runnable {
         modListStream.close();
         downloadTime = System.currentTimeMillis() - downloadTime;
         System.out.println("Got mod index in "+downloadTime+"ms");
+        this.percentage = 3;
     }
 
     @SuppressWarnings("unchecked")
@@ -263,7 +266,7 @@ public class GameUpdater implements Runnable {
             try {
                 loadJarURLs();
 
-                File versionFile = new File(dir, "version");
+                File versionFile = new File(path + "version");
                 boolean cacheAvailable = false;
                 if ((!force) && (versionFile.exists()) && ((this.latestVersion.equals("-1")) || (this.latestVersion.equals(readVersionFile(versionFile))))) {
                     System.out.println("Found cached version " + this.latestVersion);
@@ -328,24 +331,46 @@ public class GameUpdater implements Runnable {
     
     protected void downloadLibraries(String path) throws Exception {
         this.state = 3;
-        
-    }
-
-    protected void downloadAssets(String path) throws Exception {
-        this.state = 4;
-        int[] fileSizes = new int[this.urlList.length];
-        for (int i = 0; i < this.urlList.length; i++) {
-            URLConnection urlconnection = this.urlList[i].openConnection();
+        final int numLibraries = this.libraryPathList.size();
+        final int numNatives = this.nativesPathList.size();
+        int[] sizeLibrary = new int[numLibraries];
+        int[] sizeNative = new int[numNatives];
+        int sizeLibraryTotal = 0;
+        Iterator<String> libraries = this.libraryPathList.iterator();
+        Iterator<String> natives = this.nativesPathList.iterator();
+        /* Future: Either add size to json index or give each file a uniform percentage */
+        for (int i = 0; i < numLibraries; i++) {
+            String library = libraries.next();
+            URLConnection urlconnection = new URL(serverURL+"libraries/"+library).openConnection();
             urlconnection.setDefaultUseCaches(false);
             if ((urlconnection instanceof HttpURLConnection)) {
                 ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
             }
-            fileSizes[i] = urlconnection.getContentLength();
-            this.totalSizeDownload += fileSizes[i];
+            sizeLibrary[i] = urlconnection.getContentLength();
+            sizeLibraryTotal += sizeLibrary[i];
         }
-
-        int initialPercentage = this.percentage = 10;
+        this.percentage = 4;
+        for (int i = 0; i < numNatives; i++) {
+            String native = natives.next();
+            URLConnection urlconnection = new URL(serverURL+"libraries/"+native).openConnection();
+            urlconnection.setDefaultUseCaches(false);
+            if ((urlconnection instanceof HttpURLConnection)) {
+                ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
+            }
+            sizeNative[i] = urlconnection.getContentLength();
+            sizeLibraryTotal += sizeNative[i];
+        }
+        
+        int initialPercentage = this.percentage = 5;
+        int finalPercentage = 55;
         byte[] buffer = new byte[65536];
+        libraries = this.libraryPathList.iterator();
+        natives = this.nativesPathList.iterator();
+        /* WORK IN PROGRESS: PULLING FROM BELOW. REMOVE AS FINISH. */
+    }
+
+    protected void downloadAssets(String path) throws Exception {
+        this.state = 4;
 
         for (int i = 0; i < this.urlList.length; i++) {
             int unsuccessfulAttempts = 0;
