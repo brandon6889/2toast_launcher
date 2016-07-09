@@ -85,7 +85,7 @@ public class GameUpdater implements Runnable {
         this.latestVersion = latestVersion;
     }
 
-    public void init() {
+    public void init(String path) {
         try {
             Class.forName("LZMA.LzmaInputStream");
             this.lzmaSupported = true;
@@ -96,6 +96,25 @@ public class GameUpdater implements Runnable {
             this.pack200Supported = true;
         } catch (Throwable localThrowable1) {
         }
+        
+        File dir = new File(path + "bin");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File modDir = new File(path + "mods");
+        File coreModDir = new File(path + "coremods");
+        if (!modDir.exists())
+            modDir.mkdirs();
+        if (!coreModDir.exists())
+            coreModDir.mkdirs();
+        if (force) {
+            delete(new File(path + "coremods"));
+            delete(new File(path + "mods"));
+        }
+        if (!modDir.exists())
+            modDir.mkdirs();
+        if (!coreModDir.exists())
+            coreModDir.mkdirs();
     }
 
     private String generateStacktrace(Exception exception) {
@@ -108,25 +127,21 @@ public class GameUpdater implements Runnable {
     protected String getDescriptionForState() {
         switch (this.state) {
         case 1:
-            return "Initializing loader";
+            return "Initializing Loader";
         case 2:
-            return "Fetching configuration";
+            return "Fetching Configuration";
         case 3:
-            return "Checking for existing files";
+            return "Downloading Libraries";
         case 4:
-            return "Downloading libraries";
+            return "Downloading Resources";
         case 5:
-            return "Extracting downloaded packages";
+            return "Downloading Mods";
         case 6:
-            return "Updating classpath";
+            return "Downloading Game";
         case 7:
-            return "Switching applet";
-        case 8:
-            return "Initializing real applet";
-        case 9:
-            return "Starting real applet";
+            return "Extracting Libraries";
         case 10:
-            return "Done loading";
+            return "Starting Minecraft";
         }
         return "unknown state";
     }
@@ -242,29 +257,10 @@ public class GameUpdater implements Runnable {
 
     @SuppressWarnings("unchecked")
     public void run() {
-        init();
+        String path =  Util.getWorkingDirectory() + File.separator + "bin" + File.separator;
+        init(path);
         try {
             try {
-                String path =  Util.getWorkingDirectory() + File.separator + "bin" + File.separator;
-                File dir = new File(path);
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-                File modDir = new File(path + "../mods");
-                File coreModDir = new File(path + "../coremods");
-                if (!modDir.exists())
-                    modDir.mkdirs();
-                if (!coreModDir.exists())
-                    coreModDir.mkdirs();
-                if (force) {
-                    delete(new File(path + "../coremods"));
-                    delete(new File(path + "../mods"));
-                }
-                if (!modDir.exists())
-                    modDir.mkdirs();
-                if (!coreModDir.exists())
-                    coreModDir.mkdirs();
-                
                 loadJarURLs();
                 if (this.latestVersion != null) {
                     File versionFile = new File(dir, "version");
@@ -272,7 +268,7 @@ public class GameUpdater implements Runnable {
                     if ((!force) && (versionFile.exists()) && ((this.latestVersion.equals("-1")) || (this.latestVersion.equals(readVersionFile(versionFile))))) {
                         System.out.println("Found cached version " + this.latestVersion);
                         cacheAvailable = true;
-                        this.percentage = 90;
+                        this.percentage = 99;
                     }
                     if ((!cacheAvailable) || (force)) {
                         if (versionFile.exists() && !(this.latestVersion.equals(readVersionFile(versionFile))))
@@ -280,7 +276,10 @@ public class GameUpdater implements Runnable {
                         else {
                             System.out.println("Downloading version " + this.latestVersion);
                         }
-                        downloadJars(path);
+                        downloadLibraries(path);
+                        downloadAssets(path);
+                        downloadMods(path);
+                        downloadGame(path);
                         extractJars(path);
                         extractNatives(path);
                         if (this.latestVersion != null) {
@@ -328,8 +327,13 @@ public class GameUpdater implements Runnable {
         //Class appletClass = classLoader.loadClass("net.minecraft.client.main.Main");
         return (Applet) appletClass.newInstance();
     }
+    
+    protected void downloadLibraries(String path) throws Exception {
+        this.state = 3;
+        
+    }
 
-    protected void downloadJars(String path) throws Exception {
+    protected void downloadAssets(String path) throws Exception {
         this.state = 4;
         int[] fileSizes = new int[this.urlList.length];
         for (int i = 0; i < this.urlList.length; i++) {
@@ -361,13 +365,13 @@ public class GameUpdater implements Runnable {
                 InputStream inputstream = getJarInputStream(currentFile, urlconnection);
                 FileOutputStream fos;
                 if (currentFile.endsWith(".mod.jar")) {
-                    fos = new FileOutputStream(path + "../coremods/" + currentFile.replaceAll(".mod.jar", ".jar"));
+                    fos = new FileOutputStream(path + "coremods/" + currentFile.replaceAll(".mod.jar", ".jar"));
                 } else if (currentFile.endsWith(".x.zip")) {
-                    fos = new FileOutputStream(path + "../" + currentFile);
-                } else if (currentFile.endsWith(".zip")) {
-                    fos = new FileOutputStream(path + "../mods/" + currentFile);
-                } else {
                     fos = new FileOutputStream(path + currentFile);
+                } else if (currentFile.endsWith(".zip")) {
+                    fos = new FileOutputStream(path + "mods/" + currentFile);
+                } else {
+                    fos = new FileOutputStream(path + "bin/" + currentFile);
                 }
                 long downloadStartTime = System.currentTimeMillis();
                 int downloadedAmount = 0;
@@ -407,6 +411,14 @@ public class GameUpdater implements Runnable {
         }
 
         this.subtaskMessage = "";
+    }
+    
+    protected void downloadMods(String path) throws Exception {
+        this.state = 5;
+    }
+    
+    protected void downloadGame(String path) throws Exception {
+        this.state = 6;
     }
 
     protected InputStream getJarInputStream(String currentFile, final URLConnection urlconnection) throws Exception {
@@ -511,35 +523,35 @@ public class GameUpdater implements Runnable {
     }
 
     protected void extractJars(String path) throws Exception {
-        this.state = 5;
+        this.state = 7;
         float increment = 10.0F / this.urlList.length;
         for (int i = 0; i < this.urlList.length; i++) {
             this.percentage = (80 + (int) (increment * (i + 1)));
             String filename = getFileName(this.urlList[i]);
             if (filename.endsWith(".pack.lzma")) {
                 this.subtaskMessage = ("Extracting: " + filename + " to " + filename.replaceAll(".lzma", ""));
-                extractLZMA(path + filename, path + filename.replaceAll(".lzma", ""));
+                extractLZMA(path + "bin/" + filename, path + "bin/" + filename.replaceAll(".lzma", ""));
                 this.subtaskMessage = ("Extracting: " + filename.replaceAll(".lzma", "") + " to " + filename.replaceAll(".pack.lzma", ""));
-                extractPack(path + filename.replaceAll(".lzma", ""), path + filename.replaceAll(".pack.lzma", ""));
+                extractPack(path + "bin/" + filename.replaceAll(".lzma", ""), path + "bin/" + filename.replaceAll(".pack.lzma", ""));
 
             } else if (filename.endsWith(".pack")) {
                 this.subtaskMessage = ("Extracting: " + filename + " to " + filename.replace(".pack", ""));
-                extractPack(path + filename, path + filename.replace(".pack", ""));
+                extractPack(path + "bin/" + filename, path + "bin/" + filename.replace(".pack", ""));
 
             } else if (filename.endsWith(".lzma")) {
                 this.subtaskMessage = ("Extracting: " + filename + " to " + filename.replace(".lzma", ""));
-                extractLZMA(path + filename, path + filename.replace(".lzma", ""));
+                extractLZMA(path + "bin/" + filename, path + "bin/" + filename.replace(".lzma", ""));
 
             } else if (filename.endsWith(".x.zip")) {
                 this.subtaskMessage = ("Extracting: " + filename + " to " + filename.replace(".x.zip", ""));
-                extractZip(path + "../" + filename, path + "../");
-                (new File(path + "../" + filename)).delete();
+                extractZip(path + filename, path);
+                (new File(path + filename)).delete();
             }
         }
     }
 
     protected void extractNatives(String path) throws Exception {
-        this.state = 5;
+        this.state = 6;
         int initialPercentage = this.percentage = 90; // added 90
         String nativeJar = getJarName(this.urlList[(this.urlList.length - 1)]);
         Certificate[] certificate = Launcher.class.getProtectionDomain().getCodeSource().getCertificates();
@@ -552,11 +564,11 @@ public class GameUpdater implements Runnable {
             } catch (Exception localException) {
             }
         }
-        File nativeFolder = new File(path + "natives");
+        File nativeFolder = new File(path + "bin/natives");
         if (!nativeFolder.exists()) {
             nativeFolder.mkdir();
         }
-        JarFile jarFile = new JarFile(path + nativeJar, true);
+        JarFile jarFile = new JarFile(path + "bin/" + nativeJar, true);
         Enumeration<JarEntry> entities = jarFile.entries();
         this.totalSizeExtract = 0;
         while (entities.hasMoreElements()) {
@@ -569,10 +581,10 @@ public class GameUpdater implements Runnable {
         for (entities = jarFile.entries(); entities.hasMoreElements();) {
             JarEntry entry = entities.nextElement();
             if ((!entry.isDirectory()) && (entry.getName().indexOf('/') == -1)) {
-                File f = new File(path + "natives" + File.separator + entry.getName());
+                File f = new File(path + "bin/natives" + File.separator + entry.getName());
                 if ((!f.exists()) || (f.delete())) {
                     InputStream in = jarFile.getInputStream(jarFile.getEntry(entry.getName()));
-                    OutputStream out = new FileOutputStream(path + "natives" + File.separator + entry.getName());
+                    OutputStream out = new FileOutputStream(path + "bin/natives" + File.separator + entry.getName());
                     byte[] buffer = new byte[65536];
                     int bufferSize;
                     while ((bufferSize = in.read(buffer, 0, buffer.length)) != -1) {
@@ -590,7 +602,7 @@ public class GameUpdater implements Runnable {
 
         this.subtaskMessage = "";
         jarFile.close();
-        File f = new File(path + nativeJar);
+        File f = new File(path + "bin/" + nativeJar);
         f.delete();
     }
 
