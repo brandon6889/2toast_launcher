@@ -38,8 +38,7 @@ public class GameUpdater implements Runnable {
     public int currentSizeExtract;
     public int totalSizeExtract;
     public static boolean force = false;
-    protected LinkedList<String> libraryPathList = new LinkedList();
-    protected LinkedList<String> nativesPathList = new LinkedList();
+    protected LinkedList<MinecraftLibrary> mLibraries = new LinkedList();
     protected LinkedList<String> modPathList = new LinkedList();
     protected MinecraftAssets assets;
     private static ClassLoader classLoader;
@@ -55,7 +54,7 @@ public class GameUpdater implements Runnable {
 
     protected static boolean natives_loaded = false;
     private String latestVersion;
-    private final String serverURL = "http://2toast.net/minecraft/";
+    protected static final String SERVER_URL = "http://2toast.net/minecraft/";
     
     private enum UpdaterStatus {
         INIT    ("Initializing Loader"),
@@ -162,7 +161,7 @@ public class GameUpdater implements Runnable {
         
         // Get json config
         URLConnection modSource;
-        modSource = new URL(serverURL+"versions/"+this.latestVersion+"/"+this.latestVersion+".json").openConnection();
+        modSource = new URL(SERVER_URL+"versions/"+this.latestVersion+"/"+this.latestVersion+".json").openConnection();
         if (modSource instanceof HttpURLConnection) {
             modSource.setRequestProperty("Cache-Control", "no-cache");
             modSource.connect();
@@ -179,7 +178,7 @@ public class GameUpdater implements Runnable {
         this.percentage = 1;
         
         // Get asset json
-        modSource = new URL(serverURL+"assets/indexes/"+this.latestVersion+".json").openConnection();
+        modSource = new URL(SERVER_URL+"assets/indexes/"+this.latestVersion+".json").openConnection();
         if (modSource instanceof HttpURLConnection) {
             modSource.setRequestProperty("Cache-Control", "no-cache");
             modSource.connect();
@@ -195,23 +194,12 @@ public class GameUpdater implements Runnable {
         System.out.println("Got asset index in "+downloadTime+"ms");
         this.percentage = 2;
         
-        // Parse json config. Paths in format org/apache/commons/.../.jar
+        // Parse json config.
         String versionJson = Util.readFile(new File(jsonPath));
         MinecraftVersion currentVersion = gson.fromJson(versionJson, MinecraftVersion.class);
         for (MinecraftLibrary library : currentVersion.libraries) {
             if (library.allow()) {
-                String libPath = library.name.substring(0, library.name.indexOf(":"));
-                libPath = libPath.replace(".", "/").replace(":", "/");
-                String libName = library.name.substring(library.name.indexOf(":")+1, library.name.lastIndexOf(":"));
-                String libVer = library.name.substring(library.name.lastIndexOf(":")+1);
-                String newPath;
-                if (library.natives != null) {
-                    newPath = libPath+"/"+libName+"/"+libVer+"/"+libName+"-"+libVer+"-natives-"+Util.getPlatform().toString()+".jar";
-                    nativesPathList.add(newPath);
-                } else {
-                    newPath = libPath+"/"+libName+"/"+libVer+"/"+libName+"-"+libVer+".jar";
-                    libraryPathList.add(newPath);
-                }
+                mLibraries.add(library);
             }
         }
         
@@ -221,7 +209,7 @@ public class GameUpdater implements Runnable {
         
         // Fetch mods list. Only stores filenames from colon-delimited file.
         downloadTime = System.currentTimeMillis();
-        modSource = new URL(serverURL+"mods/"+this.latestVersion+".txt").openConnection();
+        modSource = new URL(SERVER_URL+"mods/"+this.latestVersion+".txt").openConnection();
         if (modSource instanceof HttpURLConnection) {
             modSource.setRequestProperty("Cache-Control", "no-cache");
             modSource.connect();
@@ -307,41 +295,15 @@ public class GameUpdater implements Runnable {
     
     protected void downloadLibraries(String path) throws Exception {
         this.state = UpdaterStatus.DL_LIBS;
-        final int numLibraries = this.libraryPathList.size();
-        final int numNatives = this.nativesPathList.size();
-        int[] sizeLibrary = new int[numLibraries];
-        int[] sizeNative = new int[numNatives];
+        
         int sizeLibraryTotal = 0;
-        Iterator<String> libraries = this.libraryPathList.iterator();
-        Iterator<String> natives = this.nativesPathList.iterator();
-        /* Future: Either add size to json index or give each file a uniform percentage */
-        for (int i = 0; i < numLibraries; i++) {
-            String library = libraries.next();
-            URLConnection urlconnection = new URL(serverURL+"libraries/"+library).openConnection();
-            urlconnection.setDefaultUseCaches(false);
-            if ((urlconnection instanceof HttpURLConnection)) {
-                ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
-            }
-            sizeLibrary[i] = urlconnection.getContentLength();
-            sizeLibraryTotal += sizeLibrary[i];
-        }
-        this.percentage = 4;
-        for (int i = 0; i < numNatives; i++) {
-            String curNative = natives.next();
-            URLConnection urlconnection = new URL(serverURL+"libraries/"+curNative).openConnection();
-            urlconnection.setDefaultUseCaches(false);
-            if ((urlconnection instanceof HttpURLConnection)) {
-                ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
-            }
-            sizeNative[i] = urlconnection.getContentLength();
-            sizeLibraryTotal += sizeNative[i];
-        }
+        for (MinecraftLibrary library : mLibraries)
+            sizeLibraryTotal += library.getSize();
         
         int initialPercentage = this.percentage = 5;
         int finalPercentage = 55;
-        byte[] buffer = new byte[65536];
-        libraries = this.libraryPathList.iterator();
-        natives = this.nativesPathList.iterator();
+        for (MinecraftLibrary library : mLibraries)
+            library.download(path);
         /* WORK IN PROGRESS: PULLING FROM BELOW. REMOVE AS FINISH. */
     }
 
@@ -421,7 +383,7 @@ public class GameUpdater implements Runnable {
         this.state = UpdaterStatus.DL_GAME;
     }
 
-    protected InputStream getJarInputStream(String currentFile, final URLConnection urlconnection) throws Exception {
+    static protected InputStream getJarInputStream(String currentFile, final URLConnection urlconnection) throws Exception {
         final InputStream[] is = new InputStream[1];
         for (int j = 0; (j < 3) && (is[0] == null); j++) {
             Thread t = new Thread() {
