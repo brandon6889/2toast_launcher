@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -16,26 +15,16 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.JarURLConnection;
-import java.net.SocketPermission;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.security.AccessControlException;
-import java.security.AccessController;
-import java.security.CodeSource;
-import java.security.PermissionCollection;
-import java.security.PrivilegedExceptionAction;
-import java.security.SecureClassLoader;
 import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
-import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -45,16 +34,6 @@ import java.util.zip.*;
 import com.google.gson.Gson;
 
 public class GameUpdater implements Runnable {
-    public static final int STATE_INIT = 1;
-    public static final int STATE_DETERMINING_PACKAGES = 2;
-    public static final int STATE_CHECKING_CACHE = 3;
-    public static final int STATE_DOWNLOADING = 4;
-    public static final int STATE_EXTRACTING_PACKAGES = 5;
-    public static final int STATE_UPDATING_CLASSPATH = 6;
-    public static final int STATE_SWITCHING_APPLET = 7;
-    public static final int STATE_INITIALIZE_REAL_APPLET = 8;
-    public static final int STATE_START_REAL_APPLET = 9;
-    public static final int STATE_DONE = 10;
     public int percentage;
     public int currentSizeExtract;
     public int totalSizeExtract;
@@ -69,7 +48,6 @@ public class GameUpdater implements Runnable {
     public boolean fatalError;
     public String fatalErrorDescription;
     protected String subtaskMessage = "";
-    protected int state;
     protected boolean lzmaSupported = false;
     protected boolean pack200Supported = false;
     protected boolean certificateRefused;
@@ -78,43 +56,64 @@ public class GameUpdater implements Runnable {
     protected static boolean natives_loaded = false;
     private String latestVersion;
     private final String serverURL = "http://2toast.net/minecraft/";
+    
+    private enum UpdaterStatus {
+        INIT    ("Initializing Loader"),
+        DL_CONF ("Fetching Configuration"),
+        DL_LIBS ("Downloading Libraries"),
+        DL_RES  ("Downloading Resources"),
+        DL_MODS ("Downloading Mods"),
+        DL_GAME ("Downloading Game"),
+        EXTRACT ("Extracting Libraries"),
+        LAUNCH  ("Starting Minecraft");
+        
+        final private String mDescription;
+        
+        private UpdaterStatus(String description) {
+            mDescription = description;
+        }
+        
+        public String getDescription() {
+            return mDescription;
+        }
+    }
+    
+    private UpdaterStatus state;
 
     public GameUpdater(String latestVersion) {
-        this.state = 1;
+        state = UpdaterStatus.INIT;
         this.percentage = 0;
         this.latestVersion = latestVersion;
     }
 
+    /**
+     * Detect supported pack files and create bin/mod folders.
+     * 
+     * @param path 
+     */
     public void init(String path) {
         try {
             Class.forName("LZMA.LzmaInputStream");
             this.lzmaSupported = true;
-        } catch (Throwable localThrowable) {
-        }
+        } catch (Throwable localThrowable) {}
         try {
             Pack200.class.getSimpleName();
             this.pack200Supported = true;
-        } catch (Throwable localThrowable1) {
-        }
+        } catch (Throwable localThrowable1) {}
         
         File dir = new File(path + "bin");
         if (!dir.exists()) {
             dir.mkdirs();
         }
+        
         File modDir = new File(path + "mods");
-        File coreModDir = new File(path + "coremods");
-        if (!modDir.exists())
-            modDir.mkdirs();
-        if (!coreModDir.exists())
-            coreModDir.mkdirs();
         if (force) {
-            delete(new File(path + "coremods"));
-            delete(new File(path + "mods"));
+            try {
+                delete(modDir);
+            } catch (IOException ex) {}
         }
         if (!modDir.exists())
             modDir.mkdirs();
-        if (!coreModDir.exists())
-            coreModDir.mkdirs();
     }
 
     private String generateStacktrace(Exception exception) {
@@ -125,25 +124,7 @@ public class GameUpdater implements Runnable {
     }
 
     protected String getDescriptionForState() {
-        switch (this.state) {
-        case 1:
-            return "Initializing Loader";
-        case 2:
-            return "Fetching Configuration";
-        case 3:
-            return "Downloading Libraries";
-        case 4:
-            return "Downloading Resources";
-        case 5:
-            return "Downloading Mods";
-        case 6:
-            return "Downloading Game";
-        case 7:
-            return "Extracting Libraries";
-        case 10:
-            return "Starting Minecraft";
-        }
-        return "unknown state";
+        return state.getDescription();
     }
 
     public static String convertStreamToString(java.io.InputStream is) {
@@ -155,7 +136,7 @@ public class GameUpdater implements Runnable {
     }
 
     protected void loadJarURLs() throws Exception {
-        this.state = 2;
+        this.state = UpdaterStatus.DL_CONF;
         byte[] buffer = new byte[65536];
         int bufferSize;
         long downloadTime;
@@ -259,6 +240,7 @@ public class GameUpdater implements Runnable {
     }
 
     @SuppressWarnings("unchecked")
+    @Override
     public void run() {
         String path =  Util.getWorkingDirectory() + File.separator + "bin" + File.separator;
         init(path);
@@ -290,19 +272,13 @@ public class GameUpdater implements Runnable {
                         writeVersionFile(versionFile, this.latestVersion);
                     }
                 }
-                this.state = 10;
+                this.state = UpdaterStatus.LAUNCH;
             } catch (AccessControlException ace) {
                 fatalErrorOccured(ace.getMessage(), ace);
                 this.certificateRefused = true;
-
-                this.loaderThread = null;
             }
         } catch (Exception e) {
             fatalErrorOccured(e.getMessage(), e);
-
-            this.loaderThread = null;
-
-            return;
         } finally {
             this.loaderThread = null;
         }
@@ -330,7 +306,7 @@ public class GameUpdater implements Runnable {
     }
     
     protected void downloadLibraries(String path) throws Exception {
-        this.state = 3;
+        this.state = UpdaterStatus.DL_LIBS;
         final int numLibraries = this.libraryPathList.size();
         final int numNatives = this.nativesPathList.size();
         int[] sizeLibrary = new int[numLibraries];
@@ -351,8 +327,8 @@ public class GameUpdater implements Runnable {
         }
         this.percentage = 4;
         for (int i = 0; i < numNatives; i++) {
-            String native = natives.next();
-            URLConnection urlconnection = new URL(serverURL+"libraries/"+native).openConnection();
+            String curNative = natives.next();
+            URLConnection urlconnection = new URL(serverURL+"libraries/"+curNative).openConnection();
             urlconnection.setDefaultUseCaches(false);
             if ((urlconnection instanceof HttpURLConnection)) {
                 ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
@@ -370,7 +346,7 @@ public class GameUpdater implements Runnable {
     }
 
     protected void downloadAssets(String path) throws Exception {
-        this.state = 4;
+        this.state = UpdaterStatus.DL_RES;
 
         for (int i = 0; i < this.urlList.length; i++) {
             int unsuccessfulAttempts = 0;
@@ -401,6 +377,7 @@ public class GameUpdater implements Runnable {
                 int fileSize = 0;
                 String downloadSpeedMessage = "";
                 int bufferSize;
+                byte[] buffer = new byte[65536];
                 while ((bufferSize = inputstream.read(buffer, 0, buffer.length)) != -1) {
                     fos.write(buffer, 0, bufferSize);
                     this.currentSizeDownload += bufferSize;
@@ -437,11 +414,11 @@ public class GameUpdater implements Runnable {
     }
     
     protected void downloadMods(String path) throws Exception {
-        this.state = 5;
+        this.state = UpdaterStatus.DL_MODS;
     }
     
     protected void downloadGame(String path) throws Exception {
-        this.state = 6;
+        this.state = UpdaterStatus.DL_GAME;
     }
 
     protected InputStream getJarInputStream(String currentFile, final URLConnection urlconnection) throws Exception {
@@ -546,7 +523,7 @@ public class GameUpdater implements Runnable {
     }
 
     protected void extractJars(String path) throws Exception {
-        this.state = 7;
+        this.state = UpdaterStatus.EXTRACT;
         float increment = 10.0F / this.urlList.length;
         for (int i = 0; i < this.urlList.length; i++) {
             this.percentage = (80 + (int) (increment * (i + 1)));
@@ -574,7 +551,7 @@ public class GameUpdater implements Runnable {
     }
 
     protected void extractNatives(String path) throws Exception {
-        this.state = 6;
+        this.state = UpdaterStatus.EXTRACT;
         int initialPercentage = this.percentage = 90; // added 90
         String nativeJar = getJarName(this.urlList[(this.urlList.length - 1)]);
         Certificate[] certificate = Launcher.class.getProtectionDomain().getCodeSource().getCertificates();
