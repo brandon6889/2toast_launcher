@@ -7,15 +7,17 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class MinecraftLibrary {
     /* JSON fields */
     public String name;
-    public ArrayList<Rule> rules;
-    public String url;
+    public Integer size;
+    public String sha1;
+    public LinkedList<MinecraftLibraryRule> rules;
     public String formatted;
-    public Natives natives;
+    public MinecraftLibraryNatives natives; /* If not null, get size/sha here */
+    public String extract; /* If not null, extract this library */
     
     /* Internal data */
     private int mFileSize = -1;
@@ -28,24 +30,20 @@ public class MinecraftLibrary {
      */
     protected boolean allow() {
         boolean flag = false;
-        if ((this.rules == null) || (this.rules.isEmpty())) {
+        if ((rules == null) || (rules.isEmpty())) {
             flag = true;
         } else {
-            for (int j = 0; j < this.rules.size(); j++) {
-                Rule r = (Rule)this.rules.get(j);
+            for (MinecraftLibraryRule r : rules) {
                 if (r.action.equals("disallow")) {
                     if (r.os != null && (r.os.name == null || r.os.name.trim().equals("") || r.os.name.toLowerCase().equals(Util.getPlatform().toString()))) {
                         flag = false;
                         break;
                     }
-                }
-                else {
-                    if (r.os != null && (r.os.name == null || r.os.name.trim().equals("") || r.os.name.toLowerCase().equals(Util.getPlatform().toString()))) {
+                } else {
+                    if (r.os == null)
                         flag = true;
-                    }
-                    else if (r.os == null) {
+                    else if (r.os.name == null || r.os.name.trim().equals("") || r.os.name.toLowerCase().equals(Util.getPlatform().toString()))
                         flag = true;
-                    }
                 }
             }
         }
@@ -53,19 +51,28 @@ public class MinecraftLibrary {
     }
     
     /**
-     * Proxy for file size. Fetches size of file from server on first call.
-     * @return Size of library file.
+     * Proxy for file size. If the size was provided by the asset index, use
+     * given value. Else fetch size from server on first call.
+     * @return Size of library file in bytes.
      * @throws java.net.MalformedURLException
      */
     protected int getSize() throws MalformedURLException, IOException {
         if (mFileSize == -1) {
-            mUrl = GameUpdater.SERVER_URL+"libraries/"+getPath();
-            URLConnection urlconnection = new URL(mUrl).openConnection();
-            urlconnection.setDefaultUseCaches(false);
-            if ((urlconnection instanceof HttpURLConnection)) {
-                ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
+            if (size != null) {
+                mFileSize = size;
+            } else if (natives != null) {
+                mFileSize = natives.size();
+                sha1 = natives.sha1();
             }
-            mFileSize = urlconnection.getContentLength();
+            if (mFileSize == -1) {
+                mUrl = GameUpdater.SERVER_URL+"libraries/"+getPath();
+                URLConnection urlconnection = new URL(mUrl).openConnection();
+                urlconnection.setDefaultUseCaches(false);
+                if ((urlconnection instanceof HttpURLConnection)) {
+                    ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
+                }
+                mFileSize = urlconnection.getContentLength();
+            }
         }
         return mFileSize;
     }
@@ -79,7 +86,6 @@ public class MinecraftLibrary {
         libPath = libPath.replace(".", "/").replace(":", "/");
         String libName = mLibName = name.substring(name.indexOf(":")+1, name.lastIndexOf(":"));
         String libVer = name.substring(name.lastIndexOf(":")+1);
-        String newPath;
         if (natives != null) {
             return libPath+"/"+libName+"/"+libVer+"/"+libName+"-"+libVer+"-natives-"+Util.getPlatform().toString()+".jar";
         } else {
