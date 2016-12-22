@@ -58,6 +58,7 @@ public class MinecraftLibrary {
      */
     protected int getSize() throws MalformedURLException, IOException {
         if (mFileSize == -1) {
+            mUrl = GameUpdater.SERVER_URL+"libraries/"+getPath();
             if (size != null) {
                 mFileSize = size;
             } else if (natives != null) {
@@ -65,7 +66,6 @@ public class MinecraftLibrary {
                 sha1 = natives.sha1();
             }
             if (mFileSize == -1) {
-                mUrl = GameUpdater.SERVER_URL+"libraries/"+getPath();
                 URLConnection urlconnection = new URL(mUrl).openConnection();
                 urlconnection.setDefaultUseCaches(false);
                 if ((urlconnection instanceof HttpURLConnection)) {
