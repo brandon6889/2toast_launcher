@@ -234,7 +234,7 @@ public class GameUpdater implements Runnable {
     @SuppressWarnings("unchecked")
     @Override
     public void run() {
-        String path =  Util.getWorkingDirectory() + File.separator + "bin" + File.separator;
+        String path =  Util.getWorkingDirectory() + File.separator;
         init(path);
         try {
             try {
@@ -245,7 +245,8 @@ public class GameUpdater implements Runnable {
                 if ((!force) && (versionFile.exists()) && ((this.latestVersion.equals("-1")) || (this.latestVersion.equals(readVersionFile(versionFile))))) {
                     System.out.println("Found cached version " + this.latestVersion);
                     cacheAvailable = true;
-                    this.percentage = 99;
+                    //ToDo: Actually check the cache if hashes are available
+                    this.percentage = 100;
                 }
                 if ((!cacheAvailable) || (force)) {
                     if (versionFile.exists() && !(this.latestVersion.equals(readVersionFile(versionFile))))
