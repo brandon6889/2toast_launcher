@@ -307,7 +307,7 @@ public class GameUpdater implements Runnable {
             sizeLibraryTotal += library.getSize();
         
         int initialPercentage = this.percentage = 5;
-        int finalPercentage = 55;
+        int finalPercentage = 30;
         for (MinecraftLibrary library : mLibraries) {
             library.download(path);
             sizeLibraryDownloaded += library.getSize();
@@ -324,8 +324,8 @@ public class GameUpdater implements Runnable {
         for (MinecraftAssetsObject asset : mAssets.objects)
             sizeAssetTotal += asset.getSize();
 
-        int initialPercentage = this.percentage = 55;
-        int finalPercentage = 85;
+        int initialPercentage = this.percentage = 30;
+        int finalPercentage = 55;
         for (MinecraftAssetsObject asset : mAssets.objects) {
             asset.download(path); // ToDo: Replace path argument with downloader visitor object. Visitor can have DLer threads :)
             sizeAssetDownloaded += asset.getSize();
@@ -347,10 +347,20 @@ public class GameUpdater implements Runnable {
     
     protected void downloadMods(String path) throws Exception {
         this.state = UpdaterStatus.DL_MODS;
+        
+        int initialPercentage = this.percentage = 55;
+        int finalPercentage = 80;
+        for (String s : modPathList) {
+            System.out.println("Want to get mod "+s);
+        }
     }
     
     protected void downloadGame(String path) throws Exception {
         this.state = UpdaterStatus.DL_GAME;
+        
+        int initialPercentage = this.percentage = 80;
+        mCurrentVersion.download(path);
+        int finalPercentage = this.percentage = 90;
     }
 
     static protected InputStream getJarInputStream(String currentFile, final URLConnection urlconnection) throws Exception {
