@@ -1,5 +1,6 @@
 package net.minecraft;
 
+import com.google.gson.annotations.SerializedName;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,15 +13,25 @@ import java.util.LinkedList;
 
 public class MinecraftVersion {
     /* JSON fields */
+    @SerializedName("minecraftArguments")
     public String minecraftArguments;
+    @SerializedName("mainClass")
     public String mainClass;
+    @SerializedName("time")
     public String time;
+    @SerializedName("id")
     public String id;
+    @SerializedName("type")
     public String type;
+    @SerializedName("processArguments")
     public String processArguments;
+    @SerializedName("releaseTime")
     public String releaseTime;
+    @SerializedName("assets")
     public String assets;
+    @SerializedName("minimumLauncherVersion")
     public int minimumLauncherVersion;
+    @SerializedName("libraries")
     public LinkedList<MinecraftLibrary> libraries;
     
     /* Internal data */

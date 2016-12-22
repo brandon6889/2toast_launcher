@@ -1,5 +1,6 @@
 package net.minecraft;
 
+import com.google.gson.annotations.SerializedName;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,8 +12,11 @@ import java.net.URLConnection;
 
 public class MinecraftAssetsObject {
     /* JSON fields */
+    @SerializedName("name")
     public String name;
+    @SerializedName("hash")
     public String hash;
+    @SerializedName("size")
     public Integer size;
     
     /* Internal data */

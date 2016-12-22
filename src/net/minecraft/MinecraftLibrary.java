@@ -1,5 +1,6 @@
 package net.minecraft;
 
+import com.google.gson.annotations.SerializedName;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,12 +18,19 @@ import java.util.LinkedList;
  */
 public class MinecraftLibrary {
     /* JSON fields */
+    @SerializedName("name")
     public String name;
+    @SerializedName("size")
     public Integer size;
+    @SerializedName("sha1")
     public String sha1;
+    @SerializedName("rules")
     public LinkedList<MinecraftLibraryRule> rules;
+    @SerializedName("formatted")
     public String formatted;
+    @SerializedName("natives")
     public MinecraftLibraryNatives natives; /* If not null, get size/sha here */
+    @SerializedName("extract")
     public String extract; /* If not null, extract this library */
     
     /* Internal data */
