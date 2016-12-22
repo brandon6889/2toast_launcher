@@ -178,7 +178,10 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         g.fillRect(20, h-100, w - 40, 60);
 
         g.setColor(new Color(29, 77, 126));
-        String msg = "Updating Minecraft";
+        String msg = this.gameUpdater.getDescriptionForState();
+        if (this.gameUpdater.fatalError) {
+            msg = this.gameUpdater.fatalErrorDescription;
+        }
         if (this.gameUpdater.fatalError) {
             msg = "Failed to launch";
         }
@@ -186,13 +189,10 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         FontMetrics fm = g.getFontMetrics();
         g.drawString(msg, w / 2 - fm.stringWidth(msg) / 2, h - 76);
         g.setFont(new Font(null, 0, 18));
-        fm = g.getFontMetrics();
-        msg = this.gameUpdater.getDescriptionForState();
-        if (this.gameUpdater.fatalError) {
-            msg = this.gameUpdater.fatalErrorDescription;
-        }
+        //fm = g.getFontMetrics();
+        
         //g.drawString(msg, w / 2 - fm.stringWidth(msg) / 2, h / 2 + fm.getHeight() * 1);
-        msg = this.gameUpdater.subtaskMessage;
+        //msg = this.gameUpdater.getDescriptionForState();
         //g.drawString(msg, w / 2 - fm.stringWidth(msg) / 2, h / 2 + fm.getHeight() * 2);
         if (!this.gameUpdater.fatalError) {
             g.setColor(Color.black);
