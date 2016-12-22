@@ -19,12 +19,10 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 import java.io.File;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.util.List;
-import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
@@ -172,7 +170,7 @@ public class LauncherFrame extends Frame {
         Proxy proxy = Proxy.NO_PROXY;
         if(hostName != null) {
             try {
-                proxy = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(hostName, ((Integer)optionSet.valueOf((OptionSpec)proxyPortOption)).intValue()));
+                proxy = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(hostName, ((Integer)optionSet.valueOf((OptionSpec)proxyPortOption))));
             } catch (Exception var14) {}
         }
         File workingDirectory = (File)optionSet.valueOf((OptionSpec)workDirOption);
@@ -188,19 +186,8 @@ public class LauncherFrame extends Frame {
         //    }
         //} catch (IOException var13) {}
         
-        //frame.pack();
-        //frame.setLocationRelativeTo((Component)null);
-        //frame.setVisible(true);
-        
         LauncherFrame frame = new LauncherFrame(new Frame(), workingDirectory, proxy, (PasswordAuthentication)null, (String[])leftoverArgs.toArray(new String[leftoverArgs.size()]), 0);
         frame.setLocationRelativeTo((Component)null);
         frame.setVisible(true);
-        
-        //LauncherFrame launcherFrame = new LauncherFrame();
-        //launcherFrame.setVisible(true);
     }
-    
-    //protected void clearFrame() {
-    //    frame.getContentPane().removeAll();
-    //}
 }

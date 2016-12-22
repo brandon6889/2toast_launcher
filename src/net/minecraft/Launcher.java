@@ -10,8 +10,6 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.VolatileImage;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
@@ -29,12 +27,13 @@ public class Launcher extends Applet implements Runnable, AppletStub {
     private VolatileImage img;
 
     public Launcher() {
-        this.customParameters = new HashMap<String, String>();
+        this.customParameters = new HashMap();
         this.gameUpdaterStarted = false;
         this.active = false;
         this.context = 0;
     }
 
+    @Override
     public boolean isActive() {
         if (this.context == 0) {
             this.context = -1;
@@ -65,6 +64,7 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         this.gameUpdater = new GameUpdater(latestVersion);
     }
 
+    @Override
     public void init() {
         if (this.applet != null) {
             this.applet.init();
@@ -74,6 +74,7 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         init(getParameter("userName"), getParameter("latestVersion"), getParameter("downloadTag"), getParameter("sessionId"));
     }
 
+    @Override
     public void start() {
         if (this.applet != null) {
             this.applet.start();
@@ -84,6 +85,7 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         }
 
         Thread t = new Thread() {
+            @Override
             public void run() {
                 Launcher.this.gameUpdater.run();
                 try {
@@ -102,6 +104,7 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         t.setDaemon(true);
         t.start();
         t = new Thread() {
+            @Override
             public void run() {
                 while (Launcher.this.applet == null) {
                     Launcher.this.repaint();
@@ -118,18 +121,18 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         this.gameUpdaterStarted = true;
     }
 
+    @Override
     public void stop() {
         if (this.applet != null) {
             this.active = false;
             this.applet.stop();
-            return;
         }
     }
 
+    @Override
     public void destroy() {
         if (this.applet != null) {
             this.applet.destroy();
-            return;
         }
     }
 
@@ -145,10 +148,12 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         validate();
     }
 
+    @Override
     public void update(Graphics g) {
         paint(g);
     }
 
+    @Override
     public void paint(Graphics g2) {
         if (this.applet != null) {
             return;
@@ -201,9 +206,11 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         g2.drawImage(this.img, 0, 0, w, h, null);
     }
 
+    @Override
     public void run() {
     }
 
+    @Override
     public String getParameter(String name) {
         String custom = (String) this.customParameters.get(name);
         if (custom != null) {
@@ -217,6 +224,7 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         return null;
     }
 
+    @Override
     public void appletResize(int i, int j) {
     }
 }
