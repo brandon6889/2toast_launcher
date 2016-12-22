@@ -208,22 +208,26 @@ public class GameUpdater implements Runnable {
         mAssets = gson.fromJson(versionJson, MinecraftAssets.class);
         
         // Fetch mods list. Only stores filenames from colon-delimited file.
-        downloadTime = System.currentTimeMillis();
-        modSource = new URL(SERVER_URL+"mods/"+this.latestVersion+".txt").openConnection();
-        if (modSource instanceof HttpURLConnection) {
-            modSource.setRequestProperty("Cache-Control", "no-cache");
-            modSource.connect();
+        try {
+            downloadTime = System.currentTimeMillis();
+            modSource = new URL(SERVER_URL+"mods/"+this.latestVersion+".txt").openConnection();
+            if (modSource instanceof HttpURLConnection) {
+                modSource.setRequestProperty("Cache-Control", "no-cache");
+                modSource.connect();
+            }
+            InputStream modListStream = modSource.getInputStream();
+            String modList = convertStreamToString(modListStream);
+            StringTokenizer mod = new StringTokenizer(modList, ":");
+            int modCount = mod.countTokens();
+            for (int i = 0; i < modCount; i++) {
+                modPathList.add(mod.nextToken());
+            }
+            modListStream.close();
+            downloadTime = System.currentTimeMillis() - downloadTime;
+            System.out.println("Got mod index in "+downloadTime+"ms");
+        } catch (FileNotFoundException e) {
+            System.out.println("No mods found for version "+this.latestVersion);
         }
-        InputStream modListStream = modSource.getInputStream();
-        String modList = convertStreamToString(modListStream);
-        StringTokenizer mod = new StringTokenizer(modList, ":");
-        int modCount = mod.countTokens();
-        for (int i = 0; i < modCount; i++) {
-            modPathList.add(mod.nextToken());
-        }
-        modListStream.close();
-        downloadTime = System.currentTimeMillis() - downloadTime;
-        System.out.println("Got mod index in "+downloadTime+"ms");
         this.percentage = 3;
     }
 
@@ -306,7 +310,8 @@ public class GameUpdater implements Runnable {
         for (MinecraftLibrary library : mLibraries) {
             library.download(path);
             sizeLibraryDownloaded += library.getSize();
-            this.percentage = initialPercentage + (finalPercentage - initialPercentage)*(sizeLibraryDownloaded/sizeLibraryTotal);
+            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)sizeLibraryDownloaded/(double)sizeLibraryTotal));
+            //System.out.println(sizeLibraryDownloaded + "/" + sizeLibraryTotal + ": " + percentage);
         }
     }
 
@@ -323,7 +328,7 @@ public class GameUpdater implements Runnable {
         for (MinecraftAssetsObject asset : mAssets.objects) {
             asset.download(path); // ToDo: Replace path argument with downloader visitor object. Visitor can have DLer threads :)
             sizeAssetDownloaded += asset.getSize();
-            this.percentage = initialPercentage + (finalPercentage - initialPercentage)*(sizeAssetDownloaded/sizeAssetTotal);
+            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)sizeAssetDownloaded/(double)sizeAssetTotal));
         }
         
         /*

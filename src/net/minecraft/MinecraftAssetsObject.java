@@ -1,5 +1,6 @@
 package net.minecraft;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,7 +72,9 @@ public class MinecraftAssetsObject {
             FileOutputStream fos;
             int downloadedAmount = 0;
             try (InputStream inputstream = GameUpdater.getJarInputStream(file, urlconnection)) {
-                fos = new FileOutputStream(path + "assets/objects/" + file);
+                File dir = new File(path + "../assets/objects/" + file.substring(0,file.lastIndexOf("/")));
+                dir.mkdirs();
+                fos = new FileOutputStream(path + "../assets/objects/" + file);
                 long downloadStartTime = System.currentTimeMillis();
                 int bufferSize;
                 byte[] buffer = new byte[65536];

@@ -22,7 +22,7 @@ public class MinecraftLibraryNatives {
         }
     }
     
-    public int size() {
+    public Integer size() {
         switch(Util.getPlatform()) {
             case windows:
                 return windowsSize;

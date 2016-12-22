@@ -1,5 +1,6 @@
 package net.minecraft;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,7 +68,7 @@ public class MinecraftLibrary {
             if (size != null) {
                 mFileSize = size;
             } else if (natives != null) {
-                mFileSize = natives.size();
+                mFileSize = (natives.size() != null) ? natives.size() : -1;
                 sha1 = natives.sha1();
             }
             if (mFileSize == -1) {
@@ -120,7 +121,9 @@ public class MinecraftLibrary {
             FileOutputStream fos;
             int downloadedAmount = 0;
             try (InputStream inputstream = GameUpdater.getJarInputStream(file, urlconnection)) {
-                fos = new FileOutputStream(path + "libraries/" + file);
+                File dir = new File(path + "../libraries/" + file.substring(0,file.lastIndexOf("/")));
+                dir.mkdirs();
+                fos = new FileOutputStream(path + "../libraries/" + file);
                 long downloadStartTime = System.currentTimeMillis();
                 int bufferSize;
                 byte[] buffer = new byte[65536];
