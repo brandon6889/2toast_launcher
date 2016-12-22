@@ -22,7 +22,6 @@ import java.net.URLConnection;
 import java.security.AccessControlException;
 import java.security.cert.Certificate;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
 import java.util.jar.JarEntry;
@@ -38,9 +37,10 @@ public class GameUpdater implements Runnable {
     public int currentSizeExtract;
     public int totalSizeExtract;
     public static boolean force = false;
+    private MinecraftVersion mCurrentVersion;
     protected LinkedList<MinecraftLibrary> mLibraries = new LinkedList();
     protected LinkedList<String> modPathList = new LinkedList();
-    protected MinecraftAssets assets;
+    protected MinecraftAssets mAssets;
     private static ClassLoader classLoader;
     protected Thread loaderThread;
     protected Thread animationThread;
@@ -196,8 +196,8 @@ public class GameUpdater implements Runnable {
         
         // Parse json config.
         String versionJson = Util.readFile(new File(jsonPath));
-        MinecraftVersion currentVersion = gson.fromJson(versionJson, MinecraftVersion.class);
-        for (MinecraftLibrary library : currentVersion.libraries) {
+        mCurrentVersion = gson.fromJson(versionJson, MinecraftVersion.class);
+        for (MinecraftLibrary library : mCurrentVersion.libraries) {
             if (library.allow()) {
                 mLibraries.add(library);
             }
@@ -205,7 +205,7 @@ public class GameUpdater implements Runnable {
         
         // Parse asset json.
         versionJson = Util.readFile(new File(assetJsonPath));
-        assets = gson.fromJson(versionJson, MinecraftAssets.class);
+        mAssets = gson.fromJson(versionJson, MinecraftAssets.class);
         
         // Fetch mods list. Only stores filenames from colon-delimited file.
         downloadTime = System.currentTimeMillis();
@@ -297,82 +297,46 @@ public class GameUpdater implements Runnable {
         this.state = UpdaterStatus.DL_LIBS;
         
         int sizeLibraryTotal = 0;
+        int sizeLibraryDownloaded = 0;
         for (MinecraftLibrary library : mLibraries)
             sizeLibraryTotal += library.getSize();
         
         int initialPercentage = this.percentage = 5;
         int finalPercentage = 55;
-        for (MinecraftLibrary library : mLibraries)
+        for (MinecraftLibrary library : mLibraries) {
             library.download(path);
-        /* WORK IN PROGRESS: PULLING FROM BELOW. REMOVE AS FINISH. */
+            sizeLibraryDownloaded += library.getSize();
+            this.percentage = initialPercentage + (finalPercentage - initialPercentage)*(sizeLibraryDownloaded/sizeLibraryTotal);
+        }
     }
 
     protected void downloadAssets(String path) throws Exception {
         this.state = UpdaterStatus.DL_RES;
+        
+        int sizeAssetTotal = 0;
+        int sizeAssetDownloaded = 0;
+        for (MinecraftAssetsObject asset : mAssets.objects)
+            sizeAssetTotal += asset.getSize();
 
-        for (int i = 0; i < this.urlList.length; i++) {
-            int unsuccessfulAttempts = 0;
-            int maxUnsuccessfulAttempts = 3;
-            boolean downloadFile = true;
-
-            while (downloadFile) {
-                downloadFile = false;
-                URLConnection urlconnection = this.urlList[i].openConnection();
-                if ((urlconnection instanceof HttpURLConnection)) {
-                    urlconnection.setRequestProperty("Cache-Control", "no-cache");
-                    urlconnection.connect();
-                }
-                String currentFile = getFileName(this.urlList[i]);
-                InputStream inputstream = getJarInputStream(currentFile, urlconnection);
-                FileOutputStream fos;
-                if (currentFile.endsWith(".mod.jar")) {
-                    fos = new FileOutputStream(path + "coremods/" + currentFile.replaceAll(".mod.jar", ".jar"));
-                } else if (currentFile.endsWith(".x.zip")) {
-                    fos = new FileOutputStream(path + currentFile);
-                } else if (currentFile.endsWith(".zip")) {
-                    fos = new FileOutputStream(path + "mods/" + currentFile);
-                } else {
-                    fos = new FileOutputStream(path + "bin/" + currentFile);
-                }
-                long downloadStartTime = System.currentTimeMillis();
-                int downloadedAmount = 0;
-                int fileSize = 0;
-                String downloadSpeedMessage = "";
-                int bufferSize;
-                byte[] buffer = new byte[65536];
-                while ((bufferSize = inputstream.read(buffer, 0, buffer.length)) != -1) {
-                    fos.write(buffer, 0, bufferSize);
-                    this.currentSizeDownload += bufferSize;
-                    fileSize += bufferSize;
-                    this.percentage = (initialPercentage + this.currentSizeDownload * 70 / this.totalSizeDownload);
-                    this.subtaskMessage = ("Retrieving resource: " + this.currentSizeDownload * 100 / this.totalSizeDownload + "%");
-                    downloadedAmount += bufferSize;
-                    long timeLapse = System.currentTimeMillis() - downloadStartTime;
-                    if (timeLapse >= 1000L) {
-                        float downloadSpeed = downloadedAmount / (float) timeLapse;
-                        downloadSpeed = (int) (downloadSpeed * 100.0F) / 100.0F;
-                        downloadSpeedMessage = " @ " + downloadSpeed + " KB/sec";
-                        downloadedAmount = 0;
-                        downloadStartTime += 1000L;
-                    }
-                    this.subtaskMessage += downloadSpeedMessage;
-                }
-
-                inputstream.close();
-                fos.close();
-                if (((urlconnection instanceof HttpURLConnection)) && (fileSize != fileSizes[i]) && (fileSizes[i] > 0)) {
-                    unsuccessfulAttempts++;
-                    if (unsuccessfulAttempts < maxUnsuccessfulAttempts) {
-                        downloadFile = true;
-                        this.currentSizeDownload -= fileSize;
-                    } else {
-                        throw new Exception("failed to download " + currentFile);
-                    }
-                }
-            }
+        int initialPercentage = this.percentage = 55;
+        int finalPercentage = 85;
+        for (MinecraftAssetsObject asset : mAssets.objects) {
+            asset.download(path); // ToDo: Replace path argument with downloader visitor object. Visitor can have DLer threads :)
+            sizeAssetDownloaded += asset.getSize();
+            this.percentage = initialPercentage + (finalPercentage - initialPercentage)*(sizeAssetDownloaded/sizeAssetTotal);
         }
-
-        this.subtaskMessage = "";
+        
+        /*
+        if (currentFile.endsWith(".mod.jar")) {
+            fos = new FileOutputStream(path + "coremods/" + currentFile.replaceAll(".mod.jar", ".jar"));
+        } else if (currentFile.endsWith(".x.zip")) {
+            fos = new FileOutputStream(path + currentFile);
+        } else if (currentFile.endsWith(".zip")) {
+            fos = new FileOutputStream(path + "mods/" + currentFile);
+        } else {
+            fos = new FileOutputStream(path + "bin/" + currentFile);
+        }
+        */
     }
     
     protected void downloadMods(String path) throws Exception {
@@ -486,7 +450,7 @@ public class GameUpdater implements Runnable {
 
     protected void extractJars(String path) throws Exception {
         this.state = UpdaterStatus.EXTRACT;
-        float increment = 10.0F / this.urlList.length;
+        /*float increment = 10.0F / this.urlList.length;
         for (int i = 0; i < this.urlList.length; i++) {
             this.percentage = (80 + (int) (increment * (i + 1)));
             String filename = getFileName(this.urlList[i]);
@@ -509,13 +473,14 @@ public class GameUpdater implements Runnable {
                 extractZip(path + filename, path);
                 (new File(path + filename)).delete();
             }
-        }
+        }*/
     }
 
     protected void extractNatives(String path) throws Exception {
         this.state = UpdaterStatus.EXTRACT;
-        int initialPercentage = this.percentage = 90; // added 90
-        String nativeJar = getJarName(this.urlList[(this.urlList.length - 1)]);
+        /*int initialPercentage = this.percentage = 90; // added 90
+        String nativeJar = mCurrentVersion.id+".jar";
+        //String nativeJar = getJarName(this.urlList[(this.urlList.length - 1)]);
         Certificate[] certificate = Launcher.class.getProtectionDomain().getCodeSource().getCertificates();
         if (certificate == null) {
             URL location = Launcher.class.getProtectionDomain().getCodeSource().getLocation();
@@ -565,7 +530,7 @@ public class GameUpdater implements Runnable {
         this.subtaskMessage = "";
         jarFile.close();
         File f = new File(path + "bin/" + nativeJar);
-        f.delete();
+        f.delete();*/
     }
 
     protected static void validateCertificateChain(Certificate[] ownCerts, Certificate[] native_certs) throws Exception {

@@ -9,6 +9,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.LinkedList;
 
+/**
+ * Minecraft Library. Provides information and functions to fetch/manage a jar
+ * library file.
+ * TODO: Need to extract natives in legacy games.
+ */
 public class MinecraftLibrary {
     /* JSON fields */
     public String name;
