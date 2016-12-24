@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
 public class Launcher extends Applet implements Runnable, AppletStub {
@@ -101,39 +103,53 @@ public class Launcher extends Applet implements Runnable, AppletStub {
             @Override
             public void run() {
                 Launcher.this.gameUpdater.run();
-                if (!Launcher.this.gameUpdater.fatalError) { // Needs more testing...
-                    List<String> launchCommand = new ArrayList();
-                    launchCommand.add(Util.getJavaBin());
-                    launchCommand.addAll(stdOpts);
-                    launchCommand.add("-Djava.library.path=" + Util.getWorkingDirectory().toString() +
-                            "/bin/" + Launcher.this.gameUpdater.getMCVersion() + "-natives");
-                    launchCommand.add("-cp");
-                    launchCommand.add(Launcher.this.gameUpdater.getClassPath());
-                    launchCommand.add("net.minecraft.launchwrapper.Launch");
-                    launchCommand.add(Launcher.this.customParameters.get("username"));
-                    launchCommand.add(Launcher.this.customParameters.get("sessionid"));
-                    launchCommand.add("--gameDir");
-                    launchCommand.add(Util.getWorkingDirectory().toString());
-                    launchCommand.add("--assetsDir");
-                    launchCommand.add(Util.getWorkingDirectory().toString()+"/assets/virtual");
-                    launchCommand.add("--height 480 --width 854");
-                    /*System.out.print("COMMAND: ");
-                    for (String s : launchCommand) {
-                        System.out.print(s + " ");
-                    }
-                    System.out.println();*/
-                    System.out.println("Executing game..");
-                    ProcessBuilder pb = new ProcessBuilder(launchCommand);
-                    pb.inheritIO();
+                if (!Launcher.this.gameUpdater.fatalError) { // Needs more testing... prints Executing game?
                     try {
-                        Process p = pb.start();
-                        if (p == null)
-                            throw new Exception("Failed to start game.");
-                        else {
-                            Thread.sleep(500L);
-                            System.exit(0);
+                        List<String> launchCommand = new ArrayList();
+                        launchCommand.add(Util.getJavaBin());
+                        launchCommand.addAll(stdOpts);
+                        launchCommand.add("-Djava.library.path=" + Util.getWorkingDirectory().toString() +
+                                "/bin/" + Launcher.this.gameUpdater.getMCVersion() + "-natives");
+                        launchCommand.add("-cp");
+                        launchCommand.add(Launcher.this.gameUpdater.getClassPath());
+                        launchCommand.add("net.minecraft.launchwrapper.Launch");
+                        launchCommand.add(Launcher.this.customParameters.get("username"));
+                        launchCommand.add(Launcher.this.customParameters.get("sessionid"));
+                        launchCommand.add("--gameDir");
+                        launchCommand.add(Util.getWorkingDirectory().toString());
+                        launchCommand.add("--assetsDir");
+                        launchCommand.add(Util.getWorkingDirectory().toString()+"/assets/virtual");
+                        launchCommand.add("--height 480 --width 854");
+                        /*System.out.print("COMMAND: ");
+                        for (String s : launchCommand) {
+                        System.out.print(s + " ");
                         }
-                    } catch (Exception e) {e.printStackTrace();}
+                        System.out.println();*/
+                        System.out.println("Executing game..");
+                        ProcessBuilder pb = new ProcessBuilder(launchCommand);
+                        pb.inheritIO();
+                        try {
+                            Process p = pb.start();
+                            if (p == null)
+                                throw new Exception("Failed to start game.");
+                            else {
+                                Thread.sleep(500L);
+                                System.exit(0);
+                            }
+                        } catch (Exception e) {e.printStackTrace();}
+                        /* LEGACY LAUNCH
+                        try {
+                        if (!Launcher.this.gameUpdater.fatalError) {
+                        Launcher.this.replace(Launcher.this.gameUpdater.createApplet());
+                        }
+                        } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                        } catch (InstantiationException e) {
+                        e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                        }*/
+                    } catch (Exception ex) {Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, null, ex);}
                     /* LEGACY LAUNCH
                     try {
                         if (!Launcher.this.gameUpdater.fatalError) {

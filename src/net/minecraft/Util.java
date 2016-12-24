@@ -209,12 +209,12 @@ public class Util {
         return dest.toByteArray();
     }
     
-    protected static String getJavaBin() {
+    protected static String getJavaBin() throws Exception {
         String javabin = System.getProperty("java.home") + File.separator + "bin" + File.separator;
         if (getPlatform() == OS.windows && new File(javabin+"javaw.exe").exists())
-            javabin += "javaw.exe";
-        else
-            javabin += "java";
-        return javabin;
+            return javabin += "java.exe";
+        else if (new File (javabin+"java").exists())
+            return javabin += "java";
+        throw new Exception("Could not locate java");
     }
 }
