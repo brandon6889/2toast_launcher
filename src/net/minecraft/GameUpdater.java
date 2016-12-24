@@ -57,7 +57,7 @@ public class GameUpdater implements Runnable {
         DL_RES  ("Downloading Resources"),
         DL_MODS ("Downloading Mods"),
         DL_GAME ("Downloading Game"),
-        EXTRACT ("Extracting Libraries"),
+        EXTRACT ("Extracting Files"),
         LAUNCH  ("Starting Minecraft");
         
         final private String mDescription;

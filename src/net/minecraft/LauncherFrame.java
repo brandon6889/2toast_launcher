@@ -61,8 +61,10 @@ public class LauncherFrame extends Frame {
             e1.printStackTrace();
         }
         addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent arg0) {
                 new Thread() {
+                    @Override
                     public void run() {
                         try {
                             Thread.sleep(30000L);

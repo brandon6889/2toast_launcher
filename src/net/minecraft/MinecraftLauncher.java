@@ -2,9 +2,7 @@ package net.minecraft;
 
 //import java.util.ArrayList;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -12,7 +10,6 @@ import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.Image;
 import java.awt.image.VolatileImage;
 
 public class MinecraftLauncher {
@@ -22,10 +19,12 @@ public class MinecraftLauncher {
             Frame frame = new Frame() {
                 private VolatileImage render;
                 
+                @Override
                 public void update(Graphics g) {
                     paint(g);
                 }
                 
+                @Override
                 public void paint(Graphics g2) {
                     int w = getWidth();
                     int h = getHeight();
@@ -55,8 +54,10 @@ public class MinecraftLauncher {
             frame.setLocationRelativeTo(null);
             
             frame.addWindowListener(new WindowAdapter() {
+                @Override
                 public void windowClosing(WindowEvent arg0) {
                     new Thread() {
+                        @Override
                         public void run() {
                             try {
                                 Thread.sleep(800L);

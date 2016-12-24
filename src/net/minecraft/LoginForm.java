@@ -18,7 +18,6 @@ import java.awt.Label;
 import java.awt.Panel;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.VolatileImage;
@@ -30,6 +29,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Random;
 
@@ -58,21 +58,19 @@ public class LoginForm extends Panel {
     private Label errorLabel;
     private boolean outdated;
     private VolatileImage img;
-    private static final GridBagConstraints loginPanelConstraints;
+    private final GridBagConstraints loginPanelConstraints;
     private LauncherFrame launcher;
     private InputStream menuMusicInputStream;
     public Decoder menuMusicPlayer = new Decoder();
-    
-    static {
+
+    public LoginForm(final LauncherFrame launcherFrame) {
         loginPanelConstraints = new GridBagConstraints();
         loginPanelConstraints.fill = GridBagConstraints.NONE;
         loginPanelConstraints.weightx = 1.0;
         loginPanelConstraints.weighty = 1.0;
         loginPanelConstraints.insets = new Insets (20, 20, 20, 20);
         loginPanelConstraints.anchor = GridBagConstraints.SOUTHEAST;
-    }
-
-    public LoginForm(final LauncherFrame launcherFrame) {
+        
         this.userName = new TextField(20);
         this.password = new TextField(20);
         this.rememberBox = new Checkbox("Remember password");
@@ -93,20 +91,16 @@ public class LoginForm extends Panel {
             e.printStackTrace();
         }
         readUsername();
-        this.retryButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ae) {
-                LoginForm.this.errorLabel.setText("");
-                LoginForm.this.removeAll();
-                LoginForm.this.add(LoginForm.this.buildLoginPanel(), loginPanelConstraints);
-                LoginForm.this.validate();
-            }
+        this.retryButton.addActionListener((ActionEvent ae) -> {
+            LoginForm.this.errorLabel.setText("");
+            LoginForm.this.removeAll();
+            LoginForm.this.add(LoginForm.this.buildLoginPanel(), loginPanelConstraints);
+            LoginForm.this.validate();
         });
-        this.launchButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ae) {
-                if (LoginForm.this.updateBox.getState())
-                    GameUpdater.force = true;
-                launcher.login(LoginForm.this.userName.getText(), LoginForm.this.password.getText());
-            }
+        this.launchButton.addActionListener((ActionEvent ae) -> {
+            if (LoginForm.this.updateBox.getState())
+                GameUpdater.force = true;
+            launcher.login(LoginForm.this.userName.getText(), LoginForm.this.password.getText());
         });
         Thread t = new Thread() {
             @Override
@@ -167,10 +161,12 @@ public class LoginForm extends Panel {
         return cipher;
     }
 
+    @Override
     public void update(Graphics g) {
         paint(g);
     }
 
+    @Override
     public void paint(Graphics g2) {
         int w = getWidth();
         int h = getHeight();
@@ -220,16 +216,19 @@ public class LoginForm extends Panel {
     private Panel buildLoginPanel() {
         Panel panel = new Panel() {
             private static final long serialVersionUID = 1L;
-            private Insets insets = new Insets(0, 24, 16, 32);
+            private final Insets insets = new Insets(0, 24, 16, 32);
 
+            @Override
             public Insets getInsets() {
                 return this.insets;
             }
 
+            @Override
             public void update(Graphics g) {
                 paint(g);
             }
 
+            @Override
             public void paint(Graphics g) {
                 super.paint(g);
             }
@@ -262,6 +261,7 @@ public class LoginForm extends Panel {
                 Label accountLink = new Label("You need to update the launcher!") {
                     private static final long serialVersionUID = 0L;
 
+                    @Override
                     public void paint(Graphics g) {
                         super.paint(g);
                         int x = 0;
@@ -280,16 +280,18 @@ public class LoginForm extends Panel {
                         g.drawLine(x + 2, y, x + width - 2, y);
                     }
 
+                    @Override
                     public void update(Graphics g) {
                         paint(g);
                     }
                 };
                 accountLink.setCursor(Cursor.getPredefinedCursor(12));
                 accountLink.addMouseListener(new MouseAdapter() {
+                    @Override
                     public void mousePressed(MouseEvent arg0) {
                         try {
                             Desktop.getDesktop().browse(new URL("http://2toast.net").toURI());
-                        } catch (Exception e) {
+                        } catch (URISyntaxException | IOException e) {
                             e.printStackTrace();
                         }
                     }
@@ -301,6 +303,7 @@ public class LoginForm extends Panel {
                 Label accountLink = new Label("New player?") {
                     private static final long serialVersionUID = 0L;
 
+                    @Override
                     public void paint(Graphics g) {
                         super.paint(g);
                         int x = 0;
@@ -319,16 +322,18 @@ public class LoginForm extends Panel {
                         g.drawLine(x + 2, y, x + width - 2, y);
                     }
 
+                    @Override
                     public void update(Graphics g) {
                         paint(g);
                     }
                 };
                 accountLink.setCursor(Cursor.getPredefinedCursor(12));
                 accountLink.addMouseListener(new MouseAdapter() {
+                    @Override
                     public void mousePressed(MouseEvent arg0) {
                         try {
                             Desktop.getDesktop().browse(new URL("http://2toast.net").toURI());
-                        } catch (Exception e) {
+                        } catch (URISyntaxException | IOException e) {
                             e.printStackTrace();
                         }
                     }
@@ -351,16 +356,19 @@ public class LoginForm extends Panel {
     private Panel buildOfflinePanel() {
         Panel panel = new Panel() {
             private static final long serialVersionUID = 1L;
-            private Insets insets = new Insets(12, 24, 16, 32);
+            private final Insets insets = new Insets(12, 24, 16, 32);
 
+            @Override
             public Insets getInsets() {
                 return this.insets;
             }
 
+            @Override
             public void update(Graphics g) {
                 paint(g);
             }
 
+            @Override
             public void paint(Graphics g) {
                 super.paint(g);
             }

@@ -21,8 +21,6 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-import net.minecraft.MinecraftLauncher;
-
 public class Util {
     
     private static File workDir = null;
