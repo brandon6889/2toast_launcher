@@ -322,10 +322,25 @@ public class GameUpdater implements Runnable {
     protected void downloadMods(String path) throws Exception {
         this.state = UpdaterStatus.DL_MODS;
         
+        LinkedList<MinecraftMod> mods = new LinkedList();
+        
         int initialPercentage = this.percentage = 55;
         int finalPercentage = 80;
+        int sizeTotal = 0;
         for (String s : mModPathList) {
-            System.out.println("Want to get mod "+s);
+            MinecraftMod m = new MinecraftMod(s, latestVersion);
+            mods.add(m);
+            sizeTotal += m.getSize();
+        }
+        
+        /* For now, delete the folder to purge stale mods... */
+        new File(path+"mods").delete();
+        
+        int sizeCurrent = 0;
+        for (MinecraftMod m : mods) {
+            m.download(path);
+            sizeCurrent += m.getSize();
+            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)sizeCurrent/(double)sizeTotal));
         }
     }
     
