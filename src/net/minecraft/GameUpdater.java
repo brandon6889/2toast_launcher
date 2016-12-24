@@ -477,9 +477,12 @@ public class GameUpdater implements Runnable {
     }
     
     protected String getClassPath() {
+        String delim = ":";
+        if (Util.getPlatform() == Util.OS.windows)
+            delim = ";";
         String s = "";
         for (MinecraftLibrary l : mLibraries)
-            s += Util.getWorkingDirectory()+"/libraries/"+l.getPath()+":";
+            s += Util.getWorkingDirectory()+"/libraries/"+l.getPath()+delim;
         s += Util.getWorkingDirectory()+"/bin/"+mCurrentVersion.getPath();
         return s;
     }
