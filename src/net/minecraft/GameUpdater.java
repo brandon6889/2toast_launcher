@@ -508,7 +508,7 @@ public class GameUpdater implements Runnable {
     }
     
     protected String getClassPath() {
-        String s = "-cp ";
+        String s = "";
         for (MinecraftLibrary l : mLibraries)
             s += Util.getWorkingDirectory()+"/libraries/"+l.getPath()+":";
         s += Util.getWorkingDirectory()+"/bin/"+mCurrentVersion.getPath();
