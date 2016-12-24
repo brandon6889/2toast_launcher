@@ -9,8 +9,11 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.VolatileImage;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
 
@@ -25,12 +28,22 @@ public class Launcher extends Applet implements Runnable, AppletStub {
     private boolean active;
     private int context;
     private VolatileImage img;
+    private final List<String> stdOpts = new ArrayList();
 
     public Launcher() {
         this.customParameters = new HashMap();
         this.gameUpdaterStarted = false;
         this.active = false;
         this.context = 0;
+        
+        stdOpts.add("-Xincgc");
+        stdOpts.add("-XX:-UseAdaptiveSizePolicy");
+        stdOpts.add("-XX:-OmitStackTraceInFastThrow");
+        stdOpts.add("-Xms128m");
+        stdOpts.add("-Xmx3968m");
+        stdOpts.add("-Dfml.ignoreInvalidMinecraftCertificates=true");
+        stdOpts.add("-Dfml.ignorePatchDiscrepancies=true");
+        stdOpts.add("-Duser.home="+System.getProperty("user.home", "."));
     }
 
     @Override
@@ -88,6 +101,36 @@ public class Launcher extends Applet implements Runnable, AppletStub {
             @Override
             public void run() {
                 Launcher.this.gameUpdater.run();
+                List<String> launchCommand = new ArrayList();
+                launchCommand.add(Util.getJavaBin());
+                launchCommand.addAll(stdOpts);
+                launchCommand.add("-Djava.library.path=" + Util.getWorkingDirectory().toString() +
+                        "/bin/" + Launcher.this.gameUpdater.getMCVersion() + "-natives");
+                launchCommand.add(Launcher.this.gameUpdater.getClassPath());
+                launchCommand.add("net.minecraft.launchwrapper.Launch");
+                launchCommand.add(Launcher.this.customParameters.get("username"));
+                launchCommand.add(Launcher.this.customParameters.get("sessionid"));
+                launchCommand.add("--gameDir");
+                launchCommand.add(Util.getWorkingDirectory().toString());
+                launchCommand.add("--assetsDir");
+                launchCommand.add(Util.getWorkingDirectory().toString()+"/assets/virtual");
+                launchCommand.add("--height 480 --width 854");
+                System.out.print("COMMAND: ");
+                for (String s : launchCommand) {
+                    System.out.print(s + " ");
+                }
+                System.out.println();
+                ProcessBuilder pb = new ProcessBuilder(launchCommand);
+                try {
+                    Process p = pb.start();
+                    if (p == null)
+                        throw new Exception("Failed to start game.");
+                    else {
+                        Thread.sleep(500L);
+                        //System.exit(0);
+                    }
+                } catch (Exception e) {e.printStackTrace();}
+                /* LEGACY LAUNCH
                 try {
                     if (!Launcher.this.gameUpdater.fatalError) {
                         Launcher.this.replace(Launcher.this.gameUpdater.createApplet());
@@ -98,7 +141,7 @@ public class Launcher extends Applet implements Runnable, AppletStub {
                     e.printStackTrace();
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
-                }
+                }*/
             }
         };
         t.setDaemon(true);

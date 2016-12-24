@@ -208,5 +208,13 @@ public class Util {
 
         return dest.toByteArray();
     }
-
+    
+    protected static String getJavaBin() {
+        String javabin = System.getProperty("java.home") + File.separator + "bin" + File.separator;
+        if (getPlatform() == OS.windows && new File(javabin+"javaw.exe").exists())
+            javabin += "javaw.exe";
+        else
+            javabin += "java";
+        return javabin;
+    }
 }

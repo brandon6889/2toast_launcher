@@ -141,7 +141,7 @@ public class LauncherFrame extends Frame {
             this.launcher.start();
             this.loginForm.loginOk();
             this.loginForm = null;
-            this.setTitle("2Toasty Minecraft Launcher");
+            this.setTitle("2Toasty Minecraft");
             this.validate();
         } catch (Exception e) {
             e.printStackTrace();

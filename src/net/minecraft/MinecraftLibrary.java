@@ -5,11 +5,18 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.cert.Certificate;
+import java.util.Enumeration;
 import java.util.LinkedList;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import static net.minecraft.GameUpdater.validateCertificateChain;
 
 /**
  * Minecraft Library. Provides information and functions to fetch/manage a jar
@@ -149,6 +156,57 @@ public class MinecraftLibrary {
                     // Reset GUI percentage for this file
                 } else {
                     throw new Exception("failed to download " + mLibName);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Extract files from jar. Expected use is extracting natives.
+     * @param rootPath Game folder, library source.
+     * @param nativePath Destination folder.
+     * @throws IOException 
+     */
+    protected void extract(String rootPath, String nativePath) throws IOException, Exception {
+        if (natives != null) {
+            Certificate[] certificate = Launcher.class.getProtectionDomain().getCodeSource().getCertificates();
+            if (certificate == null) {
+                URL location = Launcher.class.getProtectionDomain().getCodeSource().getLocation();
+                JarURLConnection jurl = (JarURLConnection) new URL("jar:" + location.toString() + "!/net/minecraft/Launcher.class").openConnection();
+                jurl.setDefaultUseCaches(true);
+                try {
+                    certificate = jurl.getCertificates();
+                } catch (Exception localException) {
+                }
+            }
+            try (JarFile jarFile = new JarFile(rootPath + "libraries/" + getPath(), true)) {
+                Enumeration<JarEntry> entities = jarFile.entries();
+                int totalSizeExtract = 0; // ToDo: Progress bars..
+                while (entities.hasMoreElements()) {
+                    JarEntry entry = entities.nextElement();
+                    if ((!entry.isDirectory()) && (entry.getName().indexOf('/') == -1)) { // only extract files in root. No subdirs
+                        totalSizeExtract += entry.getSize();
+                    }
+                }
+                int currentSizeExtract = 0;
+                for (entities = jarFile.entries(); entities.hasMoreElements();) {
+                    JarEntry entry = entities.nextElement();
+                    if ((!entry.isDirectory()) && (entry.getName().indexOf('/') == -1)) {
+                        File f = new File(nativePath + File.separator + entry.getName());
+                        if ((!f.exists()) || (f.delete())) {
+                            InputStream in = jarFile.getInputStream(jarFile.getEntry(entry.getName()));
+                            OutputStream out = new FileOutputStream(f);
+                            byte[] buffer = new byte[65536];
+                            int bufferSize;
+                            while ((bufferSize = in.read(buffer, 0, buffer.length)) != -1) {
+                                out.write(buffer, 0, bufferSize);
+                                currentSizeExtract += bufferSize;
+                            }
+                            validateCertificateChain(certificate, entry.getCertificates());
+                            in.close();
+                            out.close();
+                        }
+                    }
                 }
             }
         }

@@ -454,59 +454,11 @@ public class GameUpdater implements Runnable {
 
     protected void extractNatives(String path) throws Exception {
         this.state = UpdaterStatus.EXTRACT;
-        /*int initialPercentage = this.percentage = 90; // added 90
-        String nativeJar = mCurrentVersion.id+".jar";
-        //String nativeJar = getJarName(this.urlList[(this.urlList.length - 1)]);
-        Certificate[] certificate = Launcher.class.getProtectionDomain().getCodeSource().getCertificates();
-        if (certificate == null) {
-            URL location = Launcher.class.getProtectionDomain().getCodeSource().getLocation();
-            JarURLConnection jurl = (JarURLConnection) new URL("jar:" + location.toString() + "!/net/minecraft/Launcher.class").openConnection();
-            jurl.setDefaultUseCaches(true);
-            try {
-                certificate = jurl.getCertificates();
-            } catch (Exception localException) {
-            }
-        }
-        File nativeFolder = new File(path + "bin/natives");
-        if (!nativeFolder.exists()) {
-            nativeFolder.mkdir();
-        }
-        JarFile jarFile = new JarFile(path + "bin/" + nativeJar, true);
-        Enumeration<JarEntry> entities = jarFile.entries();
-        this.totalSizeExtract = 0;
-        while (entities.hasMoreElements()) {
-            JarEntry entry = entities.nextElement();
-            if ((!entry.isDirectory()) && (entry.getName().indexOf('/') == -1)) {
-                this.totalSizeExtract = ((int) (this.totalSizeExtract + entry.getSize()));
-            }
-        }
-        this.currentSizeExtract = 0;
-        for (entities = jarFile.entries(); entities.hasMoreElements();) {
-            JarEntry entry = entities.nextElement();
-            if ((!entry.isDirectory()) && (entry.getName().indexOf('/') == -1)) {
-                File f = new File(path + "bin/natives" + File.separator + entry.getName());
-                if ((!f.exists()) || (f.delete())) {
-                    InputStream in = jarFile.getInputStream(jarFile.getEntry(entry.getName()));
-                    OutputStream out = new FileOutputStream(path + "bin/natives" + File.separator + entry.getName());
-                    byte[] buffer = new byte[65536];
-                    int bufferSize;
-                    while ((bufferSize = in.read(buffer, 0, buffer.length)) != -1) {
-                        out.write(buffer, 0, bufferSize);
-                        this.currentSizeExtract += bufferSize;
-                        this.percentage = (initialPercentage + this.currentSizeExtract * 10 / this.totalSizeExtract); // 20
-                        this.subtaskMessage = ("Extracting: " + entry.getName() + " " + this.currentSizeExtract * 100 / this.totalSizeExtract + "%");
-                    }
-                    validateCertificateChain(certificate, entry.getCertificates());
-                    in.close();
-                    out.close();
-                }
-            }
-        }
-
-        this.subtaskMessage = "";
-        jarFile.close();
-        File f = new File(path + "bin/" + nativeJar);
-        f.delete();*/
+        File nativeDir = new File(path + "bin/" + latestVersion + "-natives");
+        nativeDir.delete();
+        nativeDir.mkdirs();
+        for (MinecraftLibrary l : mLibraries)
+            l.extract(path, nativeDir.toString());
     }
 
     protected static void validateCertificateChain(Certificate[] ownCerts, Certificate[] native_certs) throws Exception {
@@ -553,5 +505,17 @@ public class GameUpdater implements Runnable {
         if (e != null) {
             System.out.println(generateStacktrace(e));
         }
+    }
+    
+    protected String getClassPath() {
+        String s = "-cp ";
+        for (MinecraftLibrary l : mLibraries)
+            s += Util.getWorkingDirectory()+"/libraries/"+l.getPath()+":";
+        s += Util.getWorkingDirectory()+"/bin/"+mCurrentVersion.getPath();
+        return s;
+    }
+    
+    protected String getMCVersion() {
+        return latestVersion;
     }
 }
