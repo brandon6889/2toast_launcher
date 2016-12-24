@@ -335,6 +335,7 @@ public class GameUpdater implements Runnable {
         
         /* For now, delete the folder to purge stale mods... */
         new File(path+"mods").delete();
+        new File(path+"mods").mkdirs();
         
         int sizeCurrent = 0;
         for (MinecraftMod m : mods) {
