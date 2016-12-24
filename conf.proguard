@@ -1,13 +1,17 @@
 -injars bin
 -outjars obf
 
--libraryjars /usr/lib64/jvm/java-1.8.0-openjdk-1.8.0/jre/lib/rt.jar
--libraryjars /usr/lib64/jvm/java-1.8.0-openjdk-1.8.0/jre/lib/jce.jar
+-verbose
+
+#-libraryjars /usr/lib64/jvm/java-1.8.0-openjdk-1.8.0/jre/lib/rt.jar
+#-libraryjars /usr/lib64/jvm/java-1.8.0-openjdk-1.8.0/jre/lib/jce.jar
+-libraryjars /usr/java/latest/jre/lib/rt.jar
+-libraryjars /usr/java/latest/jre/lib/jce.jar
 -libraryjars libsrc
 
 -dontskipnonpubliclibraryclassmembers
 -target 1.8
--dontshrink
+#-dontshrink
 #-dontoptimize
 -printmapping mapping.proguard
 -classobfuscationdictionary util/classobf.dic
@@ -46,3 +50,10 @@
 -keepclasseswithmembers,includedescriptorclasses class * {
     native <methods>;
 }
+
+# Some more GSON stuff
+-keepclassmembers class net.minecraft.** { public <fields>; }
+-keepclassmembernames class net.minecraft.** { public <fields>; }
+#-keepclasseswithmembers class net.minecraft.** { <fields>; }
+#-keepclasseswithmembernames class net.minecraft.** { <fields>; }
+#-keepclasseswithmembernames class net.minecraft.MinecraftLibrary { @butterknife.* <fields>; }
