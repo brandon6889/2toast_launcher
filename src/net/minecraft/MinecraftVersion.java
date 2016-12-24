@@ -110,4 +110,13 @@ public class MinecraftVersion {
             }
         }
     }
+    
+    /**
+     * Determine whether the Minecraft version is legacy. Legacy versions need
+     * virtual asset folders.
+     * @return 
+     */
+    public boolean isLegacy() {
+        return type.equals("legacy");
+    }
 }

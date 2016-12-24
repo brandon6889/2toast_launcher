@@ -100,4 +100,12 @@ public class MinecraftAssetsObject {
             }
         }
     }
+    
+    /**
+     * Get legacy/vanity name for resource.
+     * @return file path/name
+     */
+    protected String getName() {
+        return name;
+    }
 }
