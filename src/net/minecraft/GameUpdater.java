@@ -464,7 +464,7 @@ public class GameUpdater implements Runnable {
     }
 
     protected void fatalErrorOccured(String error, Exception e) {
-        e.printStackTrace();
+        //e.printStackTrace();
         this.fatalError = true;
         this.fatalErrorDescription = ("Fatal error occured (" + this.state + "): " + error);
         System.out.println(this.fatalErrorDescription);
