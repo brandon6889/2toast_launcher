@@ -21,9 +21,8 @@ import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Pack200;
-import java.util.zip.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import com.google.gson.Gson;
 
@@ -42,7 +41,6 @@ public class GameUpdater implements Runnable {
     public boolean fatalError;
     public String fatalErrorDescription;
     protected String subtaskMessage = "";
-    protected boolean pack200Supported = false;
     protected boolean certificateRefused;
     protected Gson gson = new Gson();
 
@@ -80,16 +78,11 @@ public class GameUpdater implements Runnable {
     }
 
     /**
-     * Detect supported pack files and create bin/mod folders.
+     * Create bin/mod folders.
      * 
      * @param path 
      */
     public void init(String path) {
-        try {
-            Pack200.class.getSimpleName();
-            this.pack200Supported = true;
-        } catch (Throwable localThrowable1) {}
-        
         File dir = new File(path + "bin");
         if (!dir.exists()) {
             dir.mkdirs();
@@ -413,16 +406,6 @@ public class GameUpdater implements Runnable {
         zipFile.close();
     }
 
-    static protected void extractPack(String in, String out) throws Exception {
-        File f = new File(in);
-        FileOutputStream fostream = new FileOutputStream(out);
-        JarOutputStream jostream = new JarOutputStream(fostream);
-        Pack200.Unpacker unpacker = Pack200.newUnpacker();
-        unpacker.unpack(f, jostream);
-        jostream.close();
-        f.delete();
-    }
-
     static protected void delete(File f) throws IOException {
         if (f.isDirectory()) {
             for (File c : f.listFiles())
@@ -440,11 +423,7 @@ public class GameUpdater implements Runnable {
         for (int i = 0; i < this.urlList.length; i++) {
             this.percentage = (80 + (int) (increment * (i + 1)));
             String filename = getFileName(this.urlList[i]);
-            if (filename.endsWith(".pack")) {
-                this.subtaskMessage = ("Extracting: " + filename + " to " + filename.replace(".pack", ""));
-                extractPack(path + "bin/" + filename, path + "bin/" + filename.replace(".pack", ""));
-
-            } else if (filename.endsWith(".x.zip")) {
+            if (filename.endsWith(".x.zip")) {
                 this.subtaskMessage = ("Extracting: " + filename + " to " + filename.replace(".x.zip", ""));
                 extractZip(path + filename, path);
                 (new File(path + filename)).delete();
@@ -476,25 +455,6 @@ public class GameUpdater implements Runnable {
                 throw new Exception("Certificate mismatch: " + ownCerts[i] + " != " + native_certs[i]);
             }
         }
-    }
-
-    protected String getJarName(URL url) {
-        String fileName = url.getFile();
-        if (fileName.contains("?")) {
-            fileName = fileName.substring(0, fileName.indexOf("?"));
-        }
-        if (fileName.endsWith(".pack")) {
-            fileName = fileName.replaceAll(".pack", "");
-        }
-        return fileName.substring(fileName.lastIndexOf('/') + 1);
-    }
-
-    protected String getFileName(URL url) {
-        String fileName = url.getFile();
-        if (fileName.contains("?")) {
-            fileName = fileName.substring(0, fileName.indexOf("?"));
-        }
-        return fileName.substring(fileName.lastIndexOf('/') + 1);
     }
 
     protected void fatalErrorOccured(String error, Exception e) {
