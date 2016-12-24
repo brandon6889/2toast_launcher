@@ -32,6 +32,7 @@ public class GameUpdater implements Runnable {
     private MinecraftVersion mCurrentVersion;
     private final LinkedList<MinecraftLibrary> mLibraries = new LinkedList();
     private final LinkedList<String> mModPathList = new LinkedList();
+    private final LinkedList<String> mCoreModPathList = new LinkedList();
     private MinecraftAssets mAssets;
     private static ClassLoader classLoader;
     protected boolean fatalError;
@@ -205,6 +206,29 @@ public class GameUpdater implements Runnable {
             System.out.println("No mods found for version "+this.latestVersion);
         }
         this.percentage = 3;
+        
+        // Fetch coremods list. Only stores filenames from colon-delimited file.
+        try {
+            downloadTime = System.currentTimeMillis();
+            modSource = new URL(SERVER_URL+"coremods/"+this.latestVersion+".txt").openConnection();
+            if (modSource instanceof HttpURLConnection) {
+                modSource.setRequestProperty("Cache-Control", "no-cache");
+                modSource.connect();
+            }
+            InputStream modListStream = modSource.getInputStream();
+            String modList = convertStreamToString(modListStream);
+            StringTokenizer mod = new StringTokenizer(modList, ":");
+            int modCount = mod.countTokens();
+            for (int i = 0; i < modCount; i++) {
+                mCoreModPathList.add(mod.nextToken());
+            }
+            modListStream.close();
+            downloadTime = System.currentTimeMillis() - downloadTime;
+            System.out.println("Got coremod index in "+downloadTime+"ms");
+        } catch (FileNotFoundException e) {
+            System.out.println("No coremods found for version "+this.latestVersion);
+        }
+        this.percentage = 4;
     }
 
     @SuppressWarnings("unchecked")
@@ -233,6 +257,7 @@ public class GameUpdater implements Runnable {
                     downloadLibraries(path);
                     downloadAssets(path);
                     downloadMods(path);
+                    downloadCoreMods(path);
                     downloadGame(path);
                     extractJars(path);
                     extractNatives(path);
@@ -319,6 +344,34 @@ public class GameUpdater implements Runnable {
         */
     }
     
+    protected void downloadCoreMods(String path) throws Exception {
+        this.state = UpdaterStatus.DL_MODS;
+        
+        LinkedList<MinecraftCoreMod> mods = new LinkedList();
+        
+        int initialPercentage = this.percentage = 80;
+        int finalPercentage = 85;
+        int sizeTotal = 0;
+        for (String s : mCoreModPathList) {
+            if (s.length() <3 /*PADMA*/)
+                break;
+            MinecraftCoreMod m = new MinecraftCoreMod(s, latestVersion);
+            mods.add(m);
+            sizeTotal += m.getSize();
+        }
+        
+        /* For now, delete the folder to purge stale mods... */
+        new File(path+"coremods").delete();
+        new File(path+"coremods").mkdirs();
+        
+        int sizeCurrent = 0;
+        for (MinecraftCoreMod m : mods) {
+            m.download(path);
+            sizeCurrent += m.getSize();
+            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)sizeCurrent/(double)sizeTotal));
+        }
+    }
+    
     protected void downloadMods(String path) throws Exception {
         this.state = UpdaterStatus.DL_MODS;
         
@@ -350,9 +403,9 @@ public class GameUpdater implements Runnable {
     protected void downloadGame(String path) throws Exception {
         this.state = UpdaterStatus.DL_GAME;
         
-        int initialPercentage = this.percentage = 80;
+        int initialPercentage = this.percentage = 85;
         mCurrentVersion.download(path);
-        int finalPercentage = this.percentage = 90;
+        int finalPercentage = this.percentage = 95;
     }
 
     static protected InputStream getJarInputStream(String currentFile, final URLConnection urlconnection) throws Exception {
