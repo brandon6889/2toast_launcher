@@ -328,6 +328,8 @@ public class GameUpdater implements Runnable {
         int finalPercentage = 80;
         int sizeTotal = 0;
         for (String s : mModPathList) {
+            if (s.length() <3 /*PADMA*/)
+                break;
             MinecraftMod m = new MinecraftMod(s, latestVersion);
             mods.add(m);
             sizeTotal += m.getSize();
