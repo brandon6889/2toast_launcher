@@ -27,25 +27,18 @@ import java.util.zip.ZipFile;
 import com.google.gson.Gson;
 
 public class GameUpdater implements Runnable {
-    public int percentage;
-    public int currentSizeExtract;
-    public int totalSizeExtract;
-    public static boolean force = false;
+    protected int percentage;
+    protected static boolean force = false;
     private MinecraftVersion mCurrentVersion;
-    protected LinkedList<MinecraftLibrary> mLibraries = new LinkedList();
-    protected LinkedList<String> modPathList = new LinkedList();
-    protected MinecraftAssets mAssets;
+    private final LinkedList<MinecraftLibrary> mLibraries = new LinkedList();
+    private final LinkedList<String> mModPathList = new LinkedList();
+    private MinecraftAssets mAssets;
     private static ClassLoader classLoader;
-    protected Thread loaderThread;
-    protected Thread animationThread;
-    public boolean fatalError;
-    public String fatalErrorDescription;
-    protected String subtaskMessage = "";
-    protected boolean certificateRefused;
+    protected boolean fatalError;
+    protected String fatalErrorDescription;
     protected Gson gson = new Gson();
 
-    protected static boolean natives_loaded = false;
-    private String latestVersion;
+    private final String latestVersion;
     protected static final String SERVER_URL = "http://2toast.net/minecraft/";
     
     private enum UpdaterStatus {
@@ -203,7 +196,7 @@ public class GameUpdater implements Runnable {
             StringTokenizer mod = new StringTokenizer(modList, ":");
             int modCount = mod.countTokens();
             for (int i = 0; i < modCount; i++) {
-                modPathList.add(mod.nextToken());
+                mModPathList.add(mod.nextToken());
             }
             modListStream.close();
             downloadTime = System.currentTimeMillis() - downloadTime;
@@ -251,27 +244,25 @@ public class GameUpdater implements Runnable {
                 this.state = UpdaterStatus.LAUNCH;
             } catch (AccessControlException ace) {
                 fatalErrorOccured(ace.getMessage(), ace);
-                this.certificateRefused = true;
             }
         } catch (Exception e) {
             fatalErrorOccured(e.getMessage(), e);
-        } finally {
-            this.loaderThread = null;
         }
 
     }
 
     protected String readVersionFile(File file) throws Exception {
-        DataInputStream dis = new DataInputStream(new FileInputStream(file));
-        String version = dis.readUTF();
-        dis.close();
+        String version;
+        try (DataInputStream dis = new DataInputStream(new FileInputStream(file))) {
+            version = dis.readUTF();
+        }
         return version;
     }
 
     protected void writeVersionFile(File file, String version) throws Exception {
-        DataOutputStream dos = new DataOutputStream(new FileOutputStream(file));
-        dos.writeUTF(version);
-        dos.close();
+        try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(file))) {
+            dos.writeUTF(version);
+        }
     }
 
     public Applet createApplet() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -333,7 +324,7 @@ public class GameUpdater implements Runnable {
         
         int initialPercentage = this.percentage = 55;
         int finalPercentage = 80;
-        for (String s : modPathList) {
+        for (String s : mModPathList) {
             System.out.println("Want to get mod "+s);
         }
     }
