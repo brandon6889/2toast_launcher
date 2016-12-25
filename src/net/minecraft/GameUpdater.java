@@ -87,8 +87,10 @@ public class GameUpdater implements Runnable {
         
         File modDir = new File(path + "mods");
         if (force) {
+            File confDir = new File(path + "config");
             try {
                 delete(modDir);
+                delete(confDir);
             } catch (IOException ex) {}
         }
         if (!modDir.exists())

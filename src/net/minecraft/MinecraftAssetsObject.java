@@ -65,7 +65,8 @@ public class MinecraftAssetsObject {
         boolean downloadFile = true;
         int fileSize = getSize(); // Ensure size proxy is used
         
-        if (GameUpdater.calcSHA1(new File(path + "assets/objects/" + getPath())).equals(hash.toUpperCase())) {
+        File yeboi = new File(path + "assets/objects/" + getPath());
+        if (yeboi.exists() && GameUpdater.calcSHA1(yeboi).equals(hash.toUpperCase())) {
             return; // We good
         }
 
