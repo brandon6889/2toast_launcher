@@ -124,6 +124,12 @@ public class MinecraftLibrary {
         int maxUnsuccessfulAttempts = 3;
         boolean downloadFile = true;
         int fileSize = getSize(); // Ensure size proxy is used
+        
+        if (sha1 != null) {
+            if (GameUpdater.calcSHA1(new File(path + "libraries/" + getPath())).equals(sha1.toUpperCase())) {
+                return; // We good
+            }
+        }
 
         while (downloadFile) {
             downloadFile = false;

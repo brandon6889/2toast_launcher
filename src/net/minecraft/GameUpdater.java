@@ -25,6 +25,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import com.google.gson.Gson;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
 public class GameUpdater implements Runnable {
     protected int percentage;
@@ -542,5 +545,18 @@ public class GameUpdater implements Runnable {
     
     protected String getMCVersion() {
         return latestVersion;
+    }
+    
+    protected static String calcSHA1(File file) throws FileNotFoundException, IOException, NoSuchAlgorithmException {
+        MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+        try (InputStream input = new FileInputStream(file)) {
+            byte[] buffer = new byte[8192];
+            int len = input.read(buffer);
+            while (len != -1) {
+                sha1.update(buffer, 0, len);
+                len = input.read(buffer);
+            }
+            return new HexBinaryAdapter().marshal(sha1.digest());
+        }
     }
 }
