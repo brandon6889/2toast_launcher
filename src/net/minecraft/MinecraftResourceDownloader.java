@@ -176,10 +176,6 @@ public class MinecraftResourceDownloader {
                     synchronized (mLockProgress) {
                         mDownloadedSize += bufferSize;
                     }
-                    // This could get busy
-                    synchronized (mCaller) {
-                        mCaller.notify();
-                    }
                 }
             }
             fos.close();
