@@ -157,7 +157,7 @@ public class GameUpdater implements Runnable {
         fos.close();
         downloadTime = System.currentTimeMillis() - downloadTime;
         System.out.println("Got library index in "+downloadTime+"ms");
-        this.percentage = 1;
+        this.percentage = 10;
         
         // Get asset json
         modSource = new URL(SERVER_URL+"assets/indexes/"+this.latestVersion+".json").openConnection();
@@ -174,7 +174,7 @@ public class GameUpdater implements Runnable {
         fos.close();
         downloadTime = System.currentTimeMillis() - downloadTime;
         System.out.println("Got asset index in "+downloadTime+"ms");
-        this.percentage = 2;
+        this.percentage = 20;
         
         // Parse json config.
         String versionJson = Util.readFile(new File(jsonPath));
@@ -210,7 +210,7 @@ public class GameUpdater implements Runnable {
         } catch (FileNotFoundException e) {
             System.out.println("No mods found for version "+this.latestVersion);
         }
-        this.percentage = 3;
+        this.percentage = 30;
         
         // Fetch coremods list. Only stores filenames from colon-delimited file.
         try {
@@ -233,7 +233,7 @@ public class GameUpdater implements Runnable {
         } catch (FileNotFoundException e) {
             System.out.println("No coremods found for version "+this.latestVersion);
         }
-        this.percentage = 4;
+        this.percentage = 40;
     }
 
     @SuppressWarnings("unchecked")
@@ -251,7 +251,7 @@ public class GameUpdater implements Runnable {
                     System.out.println("Found cached version " + this.latestVersion);
                     cacheAvailable = true;
                     //ToDo: Actually check the cache if hashes are available
-                    this.percentage = 100;
+                    this.percentage = 1000;
                 }
                 if ((!cacheAvailable) || (force)) {
                     if (versionFile.exists() && !(this.latestVersion.equals(readVersionFile(versionFile))))
@@ -267,7 +267,7 @@ public class GameUpdater implements Runnable {
                     extractJars(path);
                     extractNatives(path);
                     if (this.latestVersion != null) {
-                        this.percentage = 100;
+                        this.percentage = 1000;
                         writeVersionFile(versionFile, this.latestVersion);
                     }
                 }
@@ -310,8 +310,8 @@ public class GameUpdater implements Runnable {
         for (MinecraftLibrary library : mLibraries)
             sizeLibraryTotal += library.getSize();
         
-        int initialPercentage = this.percentage = 5;
-        int finalPercentage = 30;
+        int initialPercentage = this.percentage = 50;
+        int finalPercentage = 300;
         for (MinecraftLibrary library : mLibraries) {
             library.download(path);
             sizeLibraryDownloaded += library.getSize();
@@ -323,8 +323,8 @@ public class GameUpdater implements Runnable {
     protected void downloadAssets(String path) throws Exception {
         this.state = UpdaterStatus.DL_RES;
 
-        int initialPercentage = this.percentage = 30;
-        int finalPercentage = 55;
+        int initialPercentage = this.percentage = 300;
+        int finalPercentage = 550;
         mAssets.download(path);
         int i;
         while ((i = mAssets.getProgress()) != 1000) {
@@ -354,8 +354,8 @@ public class GameUpdater implements Runnable {
         
         LinkedList<MinecraftCoreMod> mods = new LinkedList();
         
-        int initialPercentage = this.percentage = 80;
-        int finalPercentage = 85;
+        int initialPercentage = this.percentage = 800;
+        int finalPercentage = 850;
         int sizeTotal = 0;
         for (String s : mCoreModPathList) {
             if (s.length() <3 /*PADMA*/)
@@ -382,8 +382,8 @@ public class GameUpdater implements Runnable {
         
         LinkedList<MinecraftMod> mods = new LinkedList();
         
-        int initialPercentage = this.percentage = 55;
-        int finalPercentage = 80;
+        int initialPercentage = this.percentage = 550;
+        int finalPercentage = 800;
         int sizeTotal = 0;
         for (String s : mModPathList) {
             if (s.length() <3 /*PADMA*/)
@@ -397,7 +397,7 @@ public class GameUpdater implements Runnable {
         new File(path+"mods").delete();
         new File(path+"mods").mkdirs();
         
-        int sizeCurrent = 0;
+        long sizeCurrent = 0;
         for (MinecraftMod m : mods) {
             m.download(path);
             sizeCurrent += m.getSize();
@@ -408,9 +408,9 @@ public class GameUpdater implements Runnable {
     protected void downloadGame(String path) throws Exception {
         this.state = UpdaterStatus.DL_GAME;
         
-        int initialPercentage = this.percentage = 85;
+        int initialPercentage = this.percentage = 850;
         mCurrentVersion.download(path);
-        int finalPercentage = this.percentage = 95;
+        int finalPercentage = this.percentage = 950;
     }
 
     static protected InputStream getJarInputStream(String currentFile, final URLConnection urlconnection) throws Exception {

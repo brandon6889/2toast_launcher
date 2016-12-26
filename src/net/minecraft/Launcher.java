@@ -262,9 +262,9 @@ public class Launcher extends Applet implements Runnable, AppletStub {
             g.setColor(Color.black);
             g.fillRect(64, h - 60, w - 128 + 1, 9);
             g.setColor(new Color(29, 77, 126));
-            g.fillRect(64, h - 60, this.gameUpdater.percentage * (w - 128) / 100, 8);
+            g.fillRect(64, h - 60, this.gameUpdater.percentage * (w - 128) / 1000, 8);
             g.setColor(new Color(58, 154, 252));
-            g.fillRect(65, h - 60 + 1, this.gameUpdater.percentage * (w - 128) / 100 - 2, 3);
+            g.fillRect(65, h - 60 + 1, this.gameUpdater.percentage * (w - 128) / 1000 - 2, 3);
         }
         g.dispose();
         g2.drawImage(this.img, 0, 0, w, h, null);
