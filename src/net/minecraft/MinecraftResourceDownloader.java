@@ -38,11 +38,15 @@ public class MinecraftResourceDownloader {
     /* Download errors */
     private Exception e;
     
-    private static final int CONCURRENT_DOWNLOADS = 4;
+    private int mConcurrentDownloads = 1;
     
     public MinecraftResourceDownloader(String path, Object caller) {
         mPath = path;
         mCaller = caller;
+    }
+    
+    protected void setConcurrentDownloads(int i) {
+        mConcurrentDownloads = i;
     }
     
     /**
@@ -109,7 +113,7 @@ public class MinecraftResourceDownloader {
      */
     protected void download() throws Exception {
         synchronized (mLockQueue) {
-            while (mInProgress.size() < CONCURRENT_DOWNLOADS && mWaiting.size() > 0) {
+            while (mInProgress.size() < mConcurrentDownloads && mWaiting.size() > 0) {
                 MinecraftResource resource = mWaiting.remove();
                 mInProgress.add(resource);
                 new Thread() {
@@ -190,6 +194,9 @@ public class MinecraftResourceDownloader {
                     throw new Exception("Failed to download " + resource.getName());
                 }
             }
+            /*synchronized (mLockProgress) {
+                mDownloadedSize += fileSize;
+            }*/
             synchronized (mLockQueue) {
                 mInProgress.remove(resource);
                 this.download();

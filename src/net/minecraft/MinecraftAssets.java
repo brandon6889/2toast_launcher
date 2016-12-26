@@ -68,6 +68,7 @@ public class MinecraftAssets {
         mDownloader = new MinecraftResourceDownloader(path, this);
         mDownloader.addResources(o);
         mDownloader.sortResources(MinecraftResource.SIZESORT);
+        mDownloader.setConcurrentDownloads(10);
         mDownloader.download();
     }
     
