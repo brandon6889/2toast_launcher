@@ -27,6 +27,7 @@ import java.util.zip.ZipFile;
 import com.google.gson.Gson;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
 public class GameUpdater implements Runnable {
@@ -305,18 +306,20 @@ public class GameUpdater implements Runnable {
     protected void downloadLibraries(String path) throws Exception {
         this.state = UpdaterStatus.DL_LIBS;
         
-        int sizeLibraryTotal = 0;
-        int sizeLibraryDownloaded = 0;
-        for (MinecraftLibrary library : mLibraries)
-            sizeLibraryTotal += library.getSize();
-        
         int initialPercentage = this.percentage = 50;
         int finalPercentage = 300;
-        for (MinecraftLibrary library : mLibraries) {
-            library.download(path);
-            sizeLibraryDownloaded += library.getSize();
-            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)sizeLibraryDownloaded/(double)sizeLibraryTotal));
-            //System.out.println(sizeLibraryDownloaded + "/" + sizeLibraryTotal + ": " + percentage);
+        
+        ArrayList<MinecraftResource> o = new ArrayList();
+        o.addAll(mLibraries);
+        MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
+        downloader.addResources(o);
+        downloader.download();
+        int i;
+        while ((i = downloader.getProgress()) != 1000) {
+            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)i/1000.0D));
+            synchronized (this) {
+                wait(50L);
+            }
         }
     }
 
@@ -540,8 +543,8 @@ public class GameUpdater implements Runnable {
             delim = ";";
         String s = "";
         for (MinecraftLibrary l : mLibraries)
-            s += Util.getWorkingDirectory()+"/libraries/"+l.getPath()+delim;
-        s += Util.getWorkingDirectory()+"/bin/"+mCurrentVersion.getPath();
+            s += Util.getWorkingDirectory() + "/" + l.getPath() + delim;
+        s += Util.getWorkingDirectory() + "/bin/" + mCurrentVersion.getPath();
         return s;
     }
     

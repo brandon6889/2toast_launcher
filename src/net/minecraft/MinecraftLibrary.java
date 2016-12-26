@@ -23,7 +23,7 @@ import static net.minecraft.GameUpdater.validateCertificateChain;
  * library file.
  * TODO: Need to extract natives in legacy games.
  */
-public class MinecraftLibrary {
+public class MinecraftLibrary implements MinecraftResource {
     /* JSON fields */
     @SerializedName("name")
     public String name;
@@ -77,9 +77,10 @@ public class MinecraftLibrary {
      * @return Size of library file in bytes.
      * @throws java.net.MalformedURLException
      */
-    protected int getSize() throws MalformedURLException, IOException {
+    @Override
+    public int getSize() throws MalformedURLException, IOException {
         if (mFileSize == -1) {
-            mUrl = GameUpdater.SERVER_URL+"libraries/"+getPath();
+            mUrl = GameUpdater.SERVER_URL+getPath();
             if (size != null) {
                 mFileSize = size;
             } else if (natives != null) {
@@ -102,69 +103,16 @@ public class MinecraftLibrary {
      * Generates a path for fetching/storing the library. Used for launch command.
      * @return path
      */
-    protected String getPath() {
+    @Override
+    public String getPath() {
         String libPath = name.substring(0, name.indexOf(":"));
         libPath = libPath.replace(".", "/").replace(":", "/");
         String libName = mLibName = name.substring(name.indexOf(":")+1, name.lastIndexOf(":"));
         String libVer = name.substring(name.lastIndexOf(":")+1);
         if (natives != null) {
-            return libPath+"/"+libName+"/"+libVer+"/"+libName+"-"+libVer+"-natives-"+Util.getPlatform().toString()+".jar";
+            return "libraries/"+libPath+"/"+libName+"/"+libVer+"/"+libName+"-"+libVer+"-natives-"+Util.getPlatform().toString()+".jar";
         } else {
-            return libPath+"/"+libName+"/"+libVer+"/"+libName+"-"+libVer+".jar";
-        }
-    }
-    
-    /**
-     * Download the library to the Minecraft folder.
-     * @param path Minecraft root folder
-     * @throws java.lang.Exception
-     */
-    protected void download(String path) throws Exception { // TODO: FileDownloader class
-        int unsuccessfulAttempts = 0;
-        int maxUnsuccessfulAttempts = 3;
-        boolean downloadFile = true;
-        int fileSize = getSize(); // Ensure size proxy is used
-        
-        File yeboi = new File(path + "libraries/" + getPath());
-        if (sha1 != null && yeboi.exists()) {
-            if (GameUpdater.calcSHA1(yeboi).equals(sha1.toUpperCase())) {
-                return; // We good
-            }
-        }
-
-        while (downloadFile) {
-            downloadFile = false;
-            URLConnection urlconnection = new URL(mUrl).openConnection();
-            if ((urlconnection instanceof HttpURLConnection)) {
-                urlconnection.setRequestProperty("Cache-Control", "no-cache");
-                urlconnection.connect();
-            }
-            String file = getPath();
-            FileOutputStream fos;
-            int downloadedAmount = 0;
-            try (InputStream inputstream = GameUpdater.getJarInputStream(file, urlconnection)) {
-                File dir = new File(path + "libraries/" + file.substring(0,file.lastIndexOf("/")));
-                dir.mkdirs();
-                fos = new FileOutputStream(path + "libraries/" + file);
-                long downloadStartTime = System.currentTimeMillis();
-                int bufferSize;
-                byte[] buffer = new byte[65536];
-                while ((bufferSize = inputstream.read(buffer, 0, buffer.length)) != -1) {
-                    fos.write(buffer, 0, bufferSize);
-                    downloadedAmount += bufferSize;
-                    // TODO: update gui with percentage
-                }
-            }
-            fos.close();
-            if (((urlconnection instanceof HttpURLConnection)) && (fileSize != downloadedAmount) && (fileSize > 0)) {
-                unsuccessfulAttempts++;
-                if (unsuccessfulAttempts < maxUnsuccessfulAttempts) {
-                    downloadFile = true;
-                    // Reset GUI percentage for this file
-                } else {
-                    throw new Exception("failed to download " + mLibName);
-                }
-            }
+            return "libraries/"+libPath+"/"+libName+"/"+libVer+"/"+libName+"-"+libVer+".jar";
         }
     }
     
@@ -186,7 +134,7 @@ public class MinecraftLibrary {
                 } catch (Exception localException) {
                 }
             }
-            try (JarFile jarFile = new JarFile(rootPath + "libraries/" + getPath(), true)) {
+            try (JarFile jarFile = new JarFile(rootPath + getPath(), true)) {
                 Enumeration<JarEntry> entities = jarFile.entries();
                 int totalSizeExtract = 0; // ToDo: Progress bars..
                 while (entities.hasMoreElements()) {
@@ -217,5 +165,20 @@ public class MinecraftLibrary {
                 }
             }
         }
+    }
+
+    @Override
+    public void download(MinecraftResourceDownloader downloader) throws Exception {
+        downloader.download(this);
+    }
+
+    @Override
+    public String getHash() throws Exception {
+        return (sha1 == null) ? "" : sha1;
+    }
+
+    @Override
+    public String getName() {
+        return "library " + mLibName;
     }
 }
