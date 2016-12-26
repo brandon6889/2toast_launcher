@@ -35,8 +35,8 @@ public class GameUpdater implements Runnable {
     protected static boolean force = false;
     private MinecraftVersion mCurrentVersion;
     private final LinkedList<MinecraftLibrary> mLibraries = new LinkedList();
-    private final LinkedList<String> mModPathList = new LinkedList();
-    private final LinkedList<String> mCoreModPathList = new LinkedList();
+    private final LinkedList<MinecraftResource> mModList = new LinkedList();
+    private final LinkedList<MinecraftResource> mCoreModList = new LinkedList();
     private MinecraftAssets mAssets;
     private static ClassLoader classLoader;
     protected boolean fatalError;
@@ -86,16 +86,12 @@ public class GameUpdater implements Runnable {
             dir.mkdirs();
         }
         
-        File modDir = new File(path + "mods");
         if (force) {
             File confDir = new File(path + "config");
             try {
-                delete(modDir);
                 delete(confDir);
             } catch (IOException ex) {}
         }
-        if (!modDir.exists())
-            modDir.mkdirs();
     }
 
     private String generateStacktrace(Exception exception) {
@@ -202,8 +198,8 @@ public class GameUpdater implements Runnable {
             String modList = convertStreamToString(modListStream);
             StringTokenizer mod = new StringTokenizer(modList, ":");
             int modCount = mod.countTokens();
-            for (int i = 0; i < modCount; i++) {
-                mModPathList.add(mod.nextToken());
+            for (int i = 0; i < modCount-1; i++) {
+                mModList.add(new MinecraftMod(mod.nextToken(), latestVersion));
             }
             modListStream.close();
             downloadTime = System.currentTimeMillis() - downloadTime;
@@ -225,8 +221,8 @@ public class GameUpdater implements Runnable {
             String modList = convertStreamToString(modListStream);
             StringTokenizer mod = new StringTokenizer(modList, ":");
             int modCount = mod.countTokens();
-            for (int i = 0; i < modCount; i++) {
-                mCoreModPathList.add(mod.nextToken());
+            for (int i = 0; i < modCount-1; i++) {
+                mCoreModList.add(new MinecraftCoreMod(mod.nextToken(), latestVersion));
             }
             modListStream.close();
             downloadTime = System.currentTimeMillis() - downloadTime;
@@ -354,56 +350,44 @@ public class GameUpdater implements Runnable {
     protected void downloadCoreMods(String path) throws Exception {
         this.state = UpdaterStatus.DL_MODS;
         
-        LinkedList<MinecraftCoreMod> mods = new LinkedList();
-        
         int initialPercentage = this.percentage = 800;
         int finalPercentage = 850;
-        int sizeTotal = 0;
-        for (String s : mCoreModPathList) {
-            if (s.length() <3 /*PADMA*/)
-                break;
-            MinecraftCoreMod m = new MinecraftCoreMod(s, latestVersion);
-            mods.add(m);
-            sizeTotal += m.getSize();
-        }
         
         /* For now, delete the folder to purge stale mods... */
         new File(path+"coremods").delete();
         new File(path+"coremods").mkdirs();
         
-        int sizeCurrent = 0;
-        for (MinecraftCoreMod m : mods) {
-            m.download(path);
-            sizeCurrent += m.getSize();
-            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)sizeCurrent/(double)sizeTotal));
+        MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
+        downloader.addResources(mCoreModList);
+        downloader.download();
+        int i;
+        while ((i = downloader.getProgress()) != 1000) {
+            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)i/1000.0D));
+            synchronized (this) {
+                wait(50L);
+            }
         }
     }
     
     protected void downloadMods(String path) throws Exception {
         this.state = UpdaterStatus.DL_MODS;
         
-        LinkedList<MinecraftMod> mods = new LinkedList();
-        
         int initialPercentage = this.percentage = 550;
         int finalPercentage = 800;
-        int sizeTotal = 0;
-        for (String s : mModPathList) {
-            if (s.length() <3 /*PADMA*/)
-                break;
-            MinecraftMod m = new MinecraftMod(s, latestVersion);
-            mods.add(m);
-            sizeTotal += m.getSize();
-        }
         
         /* For now, delete the folder to purge stale mods... */
         new File(path+"mods").delete();
         new File(path+"mods").mkdirs();
         
-        long sizeCurrent = 0;
-        for (MinecraftMod m : mods) {
-            m.download(path);
-            sizeCurrent += m.getSize();
-            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)sizeCurrent/(double)sizeTotal));
+        MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
+        downloader.addResources(mModList);
+        downloader.download();
+        int i;
+        while ((i = downloader.getProgress()) != 1000) {
+            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)i/1000.0D));
+            synchronized (this) {
+                wait(50L);
+            }
         }
     }
     
@@ -541,6 +525,8 @@ public class GameUpdater implements Runnable {
         if (Util.getPlatform() == Util.OS.windows)
             delim = ";";
         String s = "";
+        for (MinecraftResource r : this.mCoreModList)
+            s += Util.getWorkingDirectory() + "/" + r.getPath() + delim;
         for (MinecraftLibrary l : mLibraries)
             s += Util.getWorkingDirectory() + "/" + l.getPath() + delim;
         s += Util.getWorkingDirectory() + "/bin/" + mCurrentVersion.getPath();
