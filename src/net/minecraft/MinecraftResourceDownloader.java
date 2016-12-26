@@ -12,16 +12,14 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * MinecraftResourceDownloader.
  */
 public class MinecraftResourceDownloader {
     /* Download progress */
-    private int mTotalSize = 0;
-    private int mDownloadedSize = 0;
+    private long mTotalSize = 0;
+    private long mDownloadedSize = 0;
     
     /* Minecraft root folder */
     private final String mPath;
@@ -36,6 +34,9 @@ public class MinecraftResourceDownloader {
     
     /* Notify caller */
     private final Object mCaller;
+    
+    /* Download errors */
+    private Exception e;
     
     private static final int CONCURRENT_DOWNLOADS = 4;
     
@@ -73,15 +74,32 @@ public class MinecraftResourceDownloader {
     
     /**
      * Get progress of downloader.
-     * @return 0 to 100
+     * @return 0 to 1000
+     * @throws java.lang.Exception
      */
-    protected int getProgress() {
+    protected int getProgress() throws Exception {
+        synchronized (this) {
+            if (e != null)
+                throw e;
+        }
         synchronized (mLockProgress) {
             if (mTotalSize == 0)
                 return 0;
-            if (mTotalSize == mDownloadedSize)
-                return 100;
-            return 100*mDownloadedSize/mTotalSize;
+            if (mTotalSize == mDownloadedSize) {
+                synchronized (mLockQueue) {
+                    if (mInProgress.isEmpty())
+                        return 1000;
+                }
+            } else {
+                synchronized (mLockQueue) {
+                    if (mInProgress.isEmpty() && mWaiting.isEmpty())
+                        throw new Exception("Download: filesize mismatch");
+                }
+            }
+            int progress = (int)((1000*mDownloadedSize)/mTotalSize);
+            if (progress == 1000)
+                progress--;
+            return progress;
         }
     }
     
@@ -100,17 +118,18 @@ public class MinecraftResourceDownloader {
                         try {
                             resource.download(MinecraftResourceDownloader.this);
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            synchronized (MinecraftResourceDownloader.this) {
+                                if (MinecraftResourceDownloader.this.e == null)
+                                    MinecraftResourceDownloader.this.e = ex;
+                            }
                         }
                     }
                 }.start();
             }
         }
-        System.out.println("break");
     }
     
     protected void download(MinecraftResource resource) throws Exception {
-        System.out.println("Downloading "+resource.getName());
         int unsuccessfulAttempts = 0;
         int maxUnsuccessfulAttempts = 3;
         boolean downloadFile = true;
@@ -126,7 +145,9 @@ public class MinecraftResourceDownloader {
                 mInProgress.remove(resource);
                 this.download();
             }
-            System.out.println("Done "+resource.getName());
+            synchronized (mCaller) {
+                mCaller.notify();
+            }
             return; // We good
         }
 
@@ -149,7 +170,11 @@ public class MinecraftResourceDownloader {
                     fos.write(buffer, 0, bufferSize);
                     downloadedAmount += bufferSize;
                     synchronized (mLockProgress) {
-                        mDownloadedSize += downloadedAmount;
+                        mDownloadedSize += bufferSize;
+                    }
+                    // This could get busy
+                    synchronized (mCaller) {
+                        mCaller.notify();
                     }
                 }
             }
@@ -169,7 +194,9 @@ public class MinecraftResourceDownloader {
                 mInProgress.remove(resource);
                 this.download();
             }
-            System.out.println("Done "+resource.getName());
+            synchronized (mCaller) {
+                mCaller.notify();
+            }
         }
     }
 }

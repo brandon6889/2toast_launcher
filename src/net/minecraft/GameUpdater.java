@@ -327,12 +327,14 @@ public class GameUpdater implements Runnable {
         int finalPercentage = 55;
         mAssets.download(path);
         int i;
-        while ((i = mAssets.getProgress()) != 100) {
-            System.out.println("Monitor: "+i);
-            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)i/100.0D));
-            mAssets.wait(50L);
+        while ((i = mAssets.getProgress()) != 1000) {
+            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)i/1000.0D));
+            synchronized (mAssets) {
+                mAssets.wait(50L);
+            }
         }
         this.percentage = finalPercentage;
+        System.out.println("DONE");
         
         /*
         if (currentFile.endsWith(".mod.jar")) {

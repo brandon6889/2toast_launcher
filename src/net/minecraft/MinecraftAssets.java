@@ -71,7 +71,7 @@ public class MinecraftAssets {
         mDownloader.download();
     }
     
-    protected int getProgress() {
+    protected int getProgress() throws Exception {
         return mDownloader.getProgress();
     }
 }
