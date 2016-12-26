@@ -9,8 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MinecraftAssets {
+    /* JSON fields */
     @SerializedName("objects")
     public ArrayList<MinecraftAssetsObject> objects;
+    
+    private MinecraftResourceDownloader mDownloader;
     
     /**
      * Build virtual asset dir for legacy games. Populates assets/virtual with
@@ -39,7 +42,7 @@ public class MinecraftAssets {
             if (!virtualFiles.contains(o.getName())) {
                 File dest = new File(virtualDir+File.separator+o.getName());
                 dest.mkdirs();
-                Files.copy(new File(path+"assets/objects/"+o.getPath()).toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(new File(path + o.getPath()).toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
     }
     
@@ -57,5 +60,18 @@ public class MinecraftAssets {
                 files.add(f);
         }
         return files;
+    }
+    
+    protected void download(String path) throws Exception {
+        ArrayList<MinecraftResource> o = new ArrayList();
+        o.addAll(objects);
+        mDownloader = new MinecraftResourceDownloader(path, this);
+        mDownloader.addResources(o);
+        mDownloader.sortResources(MinecraftResource.SIZESORT);
+        mDownloader.download();
+    }
+    
+    protected int getProgress() {
+        return mDownloader.getProgress();
     }
 }

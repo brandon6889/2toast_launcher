@@ -322,19 +322,17 @@ public class GameUpdater implements Runnable {
 
     protected void downloadAssets(String path) throws Exception {
         this.state = UpdaterStatus.DL_RES;
-        
-        int sizeAssetTotal = 0;
-        int sizeAssetDownloaded = 0;
-        for (MinecraftAssetsObject asset : mAssets.objects)
-            sizeAssetTotal += asset.getSize();
 
         int initialPercentage = this.percentage = 30;
         int finalPercentage = 55;
-        for (MinecraftAssetsObject asset : mAssets.objects) {
-            asset.download(path); // ToDo: Replace path argument with downloader visitor object. Visitor can have DLer threads :)
-            sizeAssetDownloaded += asset.getSize();
-            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)sizeAssetDownloaded/(double)sizeAssetTotal));
+        mAssets.download(path);
+        int i;
+        while ((i = mAssets.getProgress()) != 100) {
+            System.out.println("Monitor: "+i);
+            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)i/100.0D));
+            mAssets.wait(50L);
         }
+        this.percentage = finalPercentage;
         
         /*
         if (currentFile.endsWith(".mod.jar")) {
