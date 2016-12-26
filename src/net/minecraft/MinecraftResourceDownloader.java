@@ -141,18 +141,22 @@ public class MinecraftResourceDownloader {
         String filePath = resource.getPath();
         
         File localFile = new File(mPath + filePath);
-        if (localFile.exists() && GameUpdater.calcSHA1(localFile).equals(resource.getHash().toUpperCase())) {
-            synchronized (mLockProgress) {
-                mDownloadedSize += fileSize;
+        try {
+            if (localFile.exists() && GameUpdater.calcSHA1(localFile).equals(resource.getHash().toUpperCase())) {
+                synchronized (mLockProgress) {
+                    mDownloadedSize += fileSize;
+                }
+                synchronized (mLockQueue) {
+                    mInProgress.remove(resource);
+                    this.download();
+                }
+                synchronized (mCaller) {
+                    mCaller.notify();
+                }
+                return; // We good
             }
-            synchronized (mLockQueue) {
-                mInProgress.remove(resource);
-                this.download();
-            }
-            synchronized (mCaller) {
-                mCaller.notify();
-            }
-            return; // We good
+        } catch (Exception e) {
+            // The hash could not be checked, so force update.
         }
 
         while (downloadFile) {

@@ -174,7 +174,9 @@ public class MinecraftLibrary implements MinecraftResource {
 
     @Override
     public String getHash() throws Exception {
-        return (sha1 == null) ? "" : sha1;
+        if (sha1 == null)
+            throw new Exception("Hash does not exist for library "+mLibName);
+        return sha1;
     }
 
     @Override

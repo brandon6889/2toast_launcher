@@ -337,7 +337,6 @@ public class GameUpdater implements Runnable {
             }
         }
         this.percentage = finalPercentage;
-        System.out.println("DONE");
         
         /*
         if (currentFile.endsWith(".mod.jar")) {
