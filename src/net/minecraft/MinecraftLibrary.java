@@ -16,7 +16,6 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import static net.minecraft.GameUpdater.validateCertificateChain;
 
 /**
  * Minecraft Library. Provides information and functions to fetch/manage a jar
@@ -182,5 +181,22 @@ public class MinecraftLibrary implements MinecraftResource {
     @Override
     public String getName() {
         return "library " + mLibName;
+    }
+
+    private static void validateCertificateChain(Certificate[] ownCerts, Certificate[] native_certs) throws Exception {
+        if (ownCerts == null) {
+            return;
+        }
+        if (native_certs == null) {
+            throw new Exception("Unable to validate certificate chain. Native entry did not have a certificate chain at all");
+        }
+        if (ownCerts.length != native_certs.length) {
+            throw new Exception("Unable to validate certificate chain. Chain differs in length [" + ownCerts.length + " vs " + native_certs.length + "]");
+        }
+        for (int i = 0; i < ownCerts.length; i++) {
+            if (!ownCerts[i].equals(native_certs[i])) {
+                throw new Exception("Certificate mismatch: " + ownCerts[i] + " != " + native_certs[i]);
+            }
+        }
     }
 }

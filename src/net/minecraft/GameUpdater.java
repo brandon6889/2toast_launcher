@@ -1,6 +1,5 @@
 package net.minecraft;
 
-import java.applet.Applet;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -17,7 +16,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.AccessControlException;
-import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
@@ -93,10 +91,11 @@ public class GameUpdater implements Runnable {
     }
 
     public static String convertStreamToString(java.io.InputStream is) {
-        java.util.Scanner s = new java.util.Scanner(is);
-        s.useDelimiter("\\A");
-        String out = s.hasNext() ? s.next() : "";
-        s.close();
+        String out;
+        try (java.util.Scanner s = new java.util.Scanner(is)) {
+            s.useDelimiter("\\A");
+            out = s.hasNext() ? s.next() : "";
+        }
         return out;
     }
 
@@ -197,8 +196,7 @@ public class GameUpdater implements Runnable {
                     downloadMods(path);
                     downloadCoreMods(path);
                     downloadGame(path);
-                    extractJars(path);
-                    extractNatives(path);
+                    extractFiles(path);
                     if (this.latestVersion != null) {
                         this.percentage = 1000;
                         writeVersionFile(versionFile, this.latestVersion);
@@ -226,13 +224,6 @@ public class GameUpdater implements Runnable {
         try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(file))) {
             dos.writeUTF(version);
         }
-    }
-
-    public Applet createApplet() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-        @SuppressWarnings("rawtypes")
-        Class appletClass = classLoader.loadClass("net.minecraft.client.MinecraftApplet");
-        //Class appletClass = classLoader.loadClass("net.minecraft.client.main.Main");
-        return (Applet) appletClass.newInstance();
     }
     
     protected void downloadLibraries(String path) throws Exception {
@@ -292,6 +283,7 @@ public class GameUpdater implements Runnable {
         final InputStream[] is = new InputStream[1];
         for (int j = 0; (j < 3) && (is[0] == null); j++) {
             Thread t = new Thread() {
+                @Override
                 public void run() {
                     try {
                         is[0] = urlconnection.getInputStream();
@@ -319,71 +311,42 @@ public class GameUpdater implements Runnable {
     }
 
     static protected void extractZip(String in, String out) throws Exception {
-        ZipFile zipFile = new ZipFile(in);
-        Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        while (entries.hasMoreElements()) {
-            ZipEntry entry = entries.nextElement();
-            if (entry.isDirectory()) {
-                (new File(out + entry.getName())).mkdirs();
-            } else {
-                byte[] buffer = new byte[1024];
-                int len;
-                InputStream inStream = zipFile.getInputStream(entry);
-                BufferedOutputStream outFile = new BufferedOutputStream(new FileOutputStream(out + entry.getName()));
-                while ((len = inStream.read(buffer)) >= 0) {
-                    outFile.write(buffer, 0, len);
+        try (ZipFile zipFile = new ZipFile(in)) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (entry.isDirectory()) {
+                    (new File(out + entry.getName())).mkdirs();
+                } else {
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    BufferedOutputStream outFile;
+                    try (InputStream inStream = zipFile.getInputStream(entry)) {
+                        outFile = new BufferedOutputStream(new FileOutputStream(out + entry.getName()));
+                        while ((len = inStream.read(buffer)) >= 0) {
+                            outFile.write(buffer, 0, len);
+                        }
+                    }
+                    outFile.close();
                 }
-                inStream.close();
-                outFile.close();
             }
         }
-        zipFile.close();
     }
 
-    protected void extractJars(String path) throws Exception {
+    protected void extractFiles(String path) throws Exception {
         this.state = UpdaterStatus.EXTRACT;
-        if (mCurrentVersion.isLegacy())
-            mAssets.buildVirtualDir(path);
-        /*float increment = 10.0F / this.urlList.length;
-        for (int i = 0; i < this.urlList.length; i++) {
-            this.percentage = (80 + (int) (increment * (i + 1)));
-            String filename = getFileName(this.urlList[i]);
-            if (filename.endsWith(".x.zip")) {
-                this.subtaskMessage = ("Extracting: " + filename + " to " + filename.replace(".x.zip", ""));
-                extractZip(path + filename, path);
-                (new File(path + filename)).delete();
-            }
-        }*/
-    }
-
-    protected void extractNatives(String path) throws Exception {
-        this.state = UpdaterStatus.EXTRACT;
+        
         File nativeDir = new File(path + "bin/" + latestVersion + "-natives");
         nativeDir.delete();
         nativeDir.mkdirs();
         for (MinecraftLibrary l : mLibraries)
             l.extract(path, nativeDir.toString());
-    }
-
-    protected static void validateCertificateChain(Certificate[] ownCerts, Certificate[] native_certs) throws Exception {
-        if (ownCerts == null) {
-            return;
-        }
-        if (native_certs == null) {
-            throw new Exception("Unable to validate certificate chain. Native entry did not have a certificate chain at all");
-        }
-        if (ownCerts.length != native_certs.length) {
-            throw new Exception("Unable to validate certificate chain. Chain differs in length [" + ownCerts.length + " vs " + native_certs.length + "]");
-        }
-        for (int i = 0; i < ownCerts.length; i++) {
-            if (!ownCerts[i].equals(native_certs[i])) {
-                throw new Exception("Certificate mismatch: " + ownCerts[i] + " != " + native_certs[i]);
-            }
-        }
+        
+        if (mCurrentVersion.isLegacy())
+            mAssets.buildVirtualDir(path);
     }
 
     protected void fatalErrorOccured(String error, Exception e) {
-        //e.printStackTrace();
         this.fatalError = true;
         this.fatalErrorDescription = ("Fatal error occured (" + this.state + "): " + error);
         System.out.println(this.fatalErrorDescription);
