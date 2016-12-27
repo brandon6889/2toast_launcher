@@ -107,11 +107,11 @@ public class GameUpdater implements Runnable {
         if (this.latestVersion == null || this.latestVersion.equals("")) throw new Exception("Unknown Version");
         
         System.out.println("Fetching config for Minecraft "+this.latestVersion);
+        ConfigurationFetcher config = new ConfigurationFetcher(path, SERVER_URL);
         
         // Get game config
         String gameConfigPath = "versions/"+this.latestVersion+".json";
-        Configuration gameConfig = new Configuration(MinecraftVersion.class, path + gameConfigPath);
-        mCurrentVersion = (MinecraftVersion)gameConfig.get(SERVER_URL + gameConfigPath);
+        mCurrentVersion = (MinecraftVersion)config.get(MinecraftVersion.class, gameConfigPath);
         for (MinecraftLibrary library : mCurrentVersion.libraries)
             if (library.allow())
                 mLibraries.add(library);
@@ -119,8 +119,7 @@ public class GameUpdater implements Runnable {
         
         // Get asset config
         String assetConfigPath = "assets/indexes/"+this.latestVersion+".json";
-        Configuration assetConfig = new Configuration(MinecraftAssets.class, path + assetConfigPath);
-        mAssets = (MinecraftAssets)assetConfig.get(SERVER_URL + assetConfigPath);
+        mAssets = (MinecraftAssets)config.get(MinecraftAssets.class, assetConfigPath);
         this.percentage = 20;
         
         // Fetch mods list. Only stores filenames from colon-delimited file.
