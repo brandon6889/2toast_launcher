@@ -1,17 +1,22 @@
 package net.minecraft;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URLConnection;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
 /**
  * MinecraftResourceDownloader.
@@ -142,7 +147,7 @@ public class MinecraftResourceDownloader {
         
         File localFile = new File(mPath + filePath);
         try {
-            if (localFile.exists() && GameUpdater.calcSHA1(localFile).equals(resource.getHash().toUpperCase())) {
+            if (localFile.exists() && calcSHA1(localFile).equals(resource.getHash().toUpperCase())) {
                 synchronized (mLockProgress) {
                     mDownloadedSize += fileSize;
                 }
@@ -204,6 +209,19 @@ public class MinecraftResourceDownloader {
             synchronized (mCaller) {
                 mCaller.notify();
             }
+        }
+    }
+    
+    protected static String calcSHA1(File file) throws FileNotFoundException, IOException, NoSuchAlgorithmException {
+        MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+        try (InputStream input = new FileInputStream(file)) {
+            byte[] buffer = new byte[8192];
+            int len = input.read(buffer);
+            while (len != -1) {
+                sha1.update(buffer, 0, len);
+                len = input.read(buffer);
+            }
+            return new HexBinaryAdapter().marshal(sha1.digest());
         }
     }
 }
