@@ -75,21 +75,11 @@ public class GameUpdater implements Runnable {
         this.latestVersion = latestVersion;
     }
 
-    /**
-     * Create bin/mod folders.
-     * 
-     * @param path 
-     */
     public void init(String path) {
-        File dir = new File(path + "bin");
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        
         if (force) {
             File confDir = new File(path + "config");
             try {
-                delete(confDir);
+                Util.delete(confDir);
             } catch (IOException ex) {}
         }
     }
@@ -314,18 +304,6 @@ public class GameUpdater implements Runnable {
 
         MinecraftResourceDownloader d = mAssets.createDownloader(path);
         startDownloader(d, 300, 550);
-        
-        /*
-        if (currentFile.endsWith(".mod.jar")) {
-            fos = new FileOutputStream(path + "coremods/" + currentFile.replaceAll(".mod.jar", ".jar"));
-        } else if (currentFile.endsWith(".x.zip")) {
-            fos = new FileOutputStream(path + currentFile);
-        } else if (currentFile.endsWith(".zip")) {
-            fos = new FileOutputStream(path + "mods/" + currentFile);
-        } else {
-            fos = new FileOutputStream(path + "bin/" + currentFile);
-        }
-        */
     }
     
     protected void downloadCoreMods(String path) throws Exception {
@@ -422,15 +400,6 @@ public class GameUpdater implements Runnable {
             }
         }
         zipFile.close();
-    }
-
-    static protected void delete(File f) throws IOException {
-        if (f.isDirectory()) {
-            for (File c : f.listFiles())
-                delete(c);
-        }
-        if (!f.delete())
-            throw new FileNotFoundException("Failed to delete file: " + f);
     }
 
     protected void extractJars(String path) throws Exception {

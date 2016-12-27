@@ -5,12 +5,18 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.KeyStore;
 import java.security.Permission;
 import java.security.PermissionCollection;
@@ -117,11 +123,11 @@ public class Util {
                 defaultPolicy.add((Permission) instanceField.get(null));
             } catch (Exception e) {
                 System.err.println("========= WARNING =========");
-                System.err.println();
-                e.printStackTrace();
-                System.err.println();
+                //System.err.println();
+                //e.printStackTrace();
+                //System.err.println();
                 System.err.println("Warning: Cryptographic restrictions may be present.");
-                System.err.println("========= WARNING =========");
+                //System.err.println("========= WARNING =========");
             }
     	}
         
@@ -216,5 +222,31 @@ public class Util {
         else if (new File (javabin+"java").exists())
             return javabin += "java";
         throw new Exception("Could not locate java");
+    }
+
+    static protected void delete(File f) throws IOException {
+        Files.walkFileTree(f.toPath(), new FileVisitor() {
+            @Override
+            public FileVisitResult preVisitDirectory(Object t, BasicFileAttributes bfa) throws IOException {
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Object t, BasicFileAttributes bfa) throws IOException {
+                Files.delete((Path)t);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Object t, IOException ioe) throws IOException {
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Object t, IOException ioe) throws IOException {
+                Files.delete((Path)t);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 }
