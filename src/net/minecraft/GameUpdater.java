@@ -100,83 +100,33 @@ public class GameUpdater implements Runnable {
         return out;
     }
 
-    protected void loadJarURLs() throws Exception {
+    protected void loadJarURLs(String path) throws Exception {
         this.state = UpdaterStatus.DL_CONF;
-        byte[] buffer = new byte[65536];
-        int bufferSize;
-        long downloadTime;
         
         // Offline play not supported. Get legit MC.
         if (this.latestVersion == null || this.latestVersion.equals("")) throw new Exception("Unknown Version");
         
-        String jsonPath = Util.getWorkingDirectory() + File.separator + "bin" + File.separator;
-        File dir = new File(jsonPath);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        jsonPath += this.latestVersion + ".json";
-        
-        String assetJsonPath = Util.getWorkingDirectory() + File.separator + "assets" + File.separator + "indexes" + File.separator;
-        dir = new File(assetJsonPath);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        assetJsonPath += this.latestVersion+".json";
-        
         System.out.println("Fetching config for Minecraft "+this.latestVersion);
         
-        // Get json config
-        URLConnection modSource;
-        modSource = new URL(SERVER_URL+"versions/"+this.latestVersion+"/"+this.latestVersion+".json").openConnection();
-        if (modSource instanceof HttpURLConnection) {
-            modSource.setRequestProperty("Cache-Control", "no-cache");
-            modSource.connect();
-        }
-        InputStream inputstream = getJarInputStream(this.latestVersion+".json", modSource);
-        FileOutputStream fos = new FileOutputStream(jsonPath);
-        downloadTime = System.currentTimeMillis();
-        while ((bufferSize = inputstream.read(buffer, 0, buffer.length)) != -1)
-            fos.write(buffer, 0, bufferSize);
-        inputstream.close();
-        fos.close();
-        downloadTime = System.currentTimeMillis() - downloadTime;
-        System.out.println("Got library index in "+downloadTime+"ms");
-        this.percentage = 10;
-        
-        // Get asset json
-        modSource = new URL(SERVER_URL+"assets/indexes/"+this.latestVersion+".json").openConnection();
-        if (modSource instanceof HttpURLConnection) {
-            modSource.setRequestProperty("Cache-Control", "no-cache");
-            modSource.connect();
-        }
-        inputstream = getJarInputStream(this.latestVersion+".json", modSource);
-        fos = new FileOutputStream(assetJsonPath);
-        downloadTime = System.currentTimeMillis();
-        while ((bufferSize = inputstream.read(buffer, 0, buffer.length)) != -1)
-            fos.write(buffer, 0, bufferSize);
-        inputstream.close();
-        fos.close();
-        downloadTime = System.currentTimeMillis() - downloadTime;
-        System.out.println("Got asset index in "+downloadTime+"ms");
-        this.percentage = 20;
-        
-        // Parse json config.
-        String versionJson = Util.readFile(new File(jsonPath));
-        mCurrentVersion = gson.fromJson(versionJson, MinecraftVersion.class);
-        for (MinecraftLibrary library : mCurrentVersion.libraries) {
-            if (library.allow()) {
+        // Get game config
+        String gameConfigPath = "versions/"+this.latestVersion+"/"+this.latestVersion+".json";
+        Configuration gameConfig = new Configuration(MinecraftVersion.class, path + gameConfigPath);
+        mCurrentVersion = (MinecraftVersion)gameConfig.get(SERVER_URL + gameConfigPath);
+        for (MinecraftLibrary library : mCurrentVersion.libraries)
+            if (library.allow())
                 mLibraries.add(library);
-            }
-        }
+        percentage = 10;
         
-        // Parse asset json.
-        versionJson = Util.readFile(new File(assetJsonPath));
-        mAssets = gson.fromJson(versionJson, MinecraftAssets.class);
+        // Get asset config
+        String assetConfigPath = "assets/indexes/"+this.latestVersion+".json";
+        Configuration assetConfig = new Configuration(MinecraftAssets.class, path + assetConfigPath);
+        mAssets = (MinecraftAssets)assetConfig.get(SERVER_URL + assetConfigPath);
+        this.percentage = 20;
         
         // Fetch mods list. Only stores filenames from colon-delimited file.
         try {
-            downloadTime = System.currentTimeMillis();
-            modSource = new URL(SERVER_URL+"mods/"+this.latestVersion+".txt").openConnection();
+            long downloadTime = System.currentTimeMillis();
+            URLConnection modSource = new URL(SERVER_URL+"mods/"+this.latestVersion+".txt").openConnection();
             if (modSource instanceof HttpURLConnection) {
                 modSource.setRequestProperty("Cache-Control", "no-cache");
                 modSource.connect();
@@ -198,8 +148,8 @@ public class GameUpdater implements Runnable {
         
         // Fetch coremods list. Only stores filenames from colon-delimited file.
         try {
-            downloadTime = System.currentTimeMillis();
-            modSource = new URL(SERVER_URL+"coremods/"+this.latestVersion+".txt").openConnection();
+            long downloadTime = System.currentTimeMillis();
+            URLConnection modSource = new URL(SERVER_URL+"coremods/"+this.latestVersion+".txt").openConnection();
             if (modSource instanceof HttpURLConnection) {
                 modSource.setRequestProperty("Cache-Control", "no-cache");
                 modSource.connect();
@@ -227,7 +177,7 @@ public class GameUpdater implements Runnable {
         init(path);
         try {
             try {
-                loadJarURLs();
+                loadJarURLs(path);
 
                 File versionFile = new File(path + "version");
                 boolean cacheAvailable = false;
@@ -346,8 +296,7 @@ public class GameUpdater implements Runnable {
                 public void run() {
                     try {
                         is[0] = urlconnection.getInputStream();
-                    } catch (IOException localIOException) {
-                    }
+                    } catch (IOException localIOException) {}
                 }
             };
             t.setName("JarInputStreamThread");
@@ -355,25 +304,18 @@ public class GameUpdater implements Runnable {
             for (int iterationCount = 0; (is[0] == null) && (iterationCount++ < 5);) {
                 try {
                     t.join(1000L);
-                } catch (InterruptedException localInterruptedException) {
-                }
+                } catch (InterruptedException localInterruptedException) {}
             }
             if (is[0] == null) {
                 try {
                     t.interrupt();
                     t.join();
-                } catch (InterruptedException localInterruptedException1) {
-                }
+                } catch (InterruptedException localInterruptedException1) {}
             }
         }
         if (is[0] == null) {
-            if (currentFile.equals("minecraft.jar")) {
-                throw new Exception("Unable to download " + currentFile);
-            }
-
             throw new Exception("Unable to download " + currentFile + " from " + urlconnection.getURL());
         }
-
         return is[0];
     }
 
