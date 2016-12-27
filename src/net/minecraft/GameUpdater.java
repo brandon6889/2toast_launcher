@@ -109,7 +109,7 @@ public class GameUpdater implements Runnable {
         System.out.println("Fetching config for Minecraft "+this.latestVersion);
         
         // Get game config
-        String gameConfigPath = "versions/"+this.latestVersion+"/"+this.latestVersion+".json";
+        String gameConfigPath = "versions/"+this.latestVersion+".json";
         Configuration gameConfig = new Configuration(MinecraftVersion.class, path + gameConfigPath);
         mCurrentVersion = (MinecraftVersion)gameConfig.get(SERVER_URL + gameConfigPath);
         for (MinecraftLibrary library : mCurrentVersion.libraries)
