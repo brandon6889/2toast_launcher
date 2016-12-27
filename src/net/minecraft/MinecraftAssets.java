@@ -62,14 +62,14 @@ public class MinecraftAssets {
         return files;
     }
     
-    protected void download(String path) throws Exception {
+    protected MinecraftResourceDownloader createDownloader(String path) throws Exception {
         ArrayList<MinecraftResource> o = new ArrayList();
         o.addAll(objects);
         mDownloader = new MinecraftResourceDownloader(path, this);
         mDownloader.addResources(o);
         mDownloader.sortResources(MinecraftResource.SIZESORT);
         mDownloader.setConcurrentDownloads(4);
-        mDownloader.download();
+        return mDownloader;
     }
     
     protected int getProgress() throws Exception {

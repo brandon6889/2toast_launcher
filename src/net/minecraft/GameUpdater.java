@@ -302,37 +302,18 @@ public class GameUpdater implements Runnable {
     protected void downloadLibraries(String path) throws Exception {
         this.state = UpdaterStatus.DL_LIBS;
         
-        int initialPercentage = this.percentage = 50;
-        int finalPercentage = 300;
-        
         ArrayList<MinecraftResource> o = new ArrayList();
         o.addAll(mLibraries);
         MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
         downloader.addResources(o);
-        downloader.download();
-        int i;
-        while ((i = downloader.getProgress()) != 1000) {
-            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)i/1000.0D));
-            synchronized (this) {
-                wait(50L);
-            }
-        }
+        startDownloader(downloader, 50, 300);
     }
 
     protected void downloadAssets(String path) throws Exception {
         this.state = UpdaterStatus.DL_RES;
 
-        int initialPercentage = this.percentage = 300;
-        int finalPercentage = 550;
-        mAssets.download(path);
-        int i;
-        while ((i = mAssets.getProgress()) != 1000) {
-            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)i/1000.0D));
-            synchronized (mAssets) {
-                mAssets.wait(50L);
-            }
-        }
-        this.percentage = finalPercentage;
+        MinecraftResourceDownloader d = mAssets.createDownloader(path);
+        startDownloader(d, 300, 550);
         
         /*
         if (currentFile.endsWith(".mod.jar")) {
@@ -350,9 +331,6 @@ public class GameUpdater implements Runnable {
     protected void downloadCoreMods(String path) throws Exception {
         this.state = UpdaterStatus.DL_MODS;
         
-        int initialPercentage = this.percentage = 800;
-        int finalPercentage = 850;
-        
         /* For now, delete the folder to purge stale mods... */
         new File(path+"coremods").delete();
         new File(path+"coremods").mkdirs();
@@ -360,20 +338,11 @@ public class GameUpdater implements Runnable {
         MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
         downloader.addResources(mCoreModList);
         downloader.download();
-        int i;
-        while ((i = downloader.getProgress()) != 1000) {
-            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)i/1000.0D));
-            synchronized (this) {
-                wait(50L);
-            }
-        }
+        startDownloader(downloader, 800, 850);
     }
     
     protected void downloadMods(String path) throws Exception {
         this.state = UpdaterStatus.DL_MODS;
-        
-        int initialPercentage = this.percentage = 550;
-        int finalPercentage = 800;
         
         /* For now, delete the folder to purge stale mods... */
         new File(path+"mods").delete();
@@ -381,22 +350,18 @@ public class GameUpdater implements Runnable {
         
         MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
         downloader.addResources(mModList);
-        downloader.download();
-        int i;
-        while ((i = downloader.getProgress()) != 1000) {
-            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)i/1000.0D));
-            synchronized (this) {
-                wait(50L);
-            }
-        }
+        startDownloader(downloader, 550, 800);
     }
     
     protected void downloadGame(String path) throws Exception {
         this.state = UpdaterStatus.DL_GAME;
         
-        int initialPercentage = this.percentage = 850;
-        mCurrentVersion.download(path);
-        int finalPercentage = this.percentage = 950;
+        LinkedList<MinecraftResource> game = new LinkedList();
+        game.add(mCurrentVersion);
+        
+        MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
+        downloader.addResources(game);
+        startDownloader(downloader, 850, 950);
     }
 
     static protected InputStream getJarInputStream(String currentFile, final URLConnection urlconnection) throws Exception {
@@ -529,7 +494,7 @@ public class GameUpdater implements Runnable {
             s += Util.getWorkingDirectory() + "/" + r.getPath() + delim;
         for (MinecraftLibrary l : mLibraries)
             s += Util.getWorkingDirectory() + "/" + l.getPath() + delim;
-        s += Util.getWorkingDirectory() + "/bin/" + mCurrentVersion.getPath();
+        s += Util.getWorkingDirectory() + "/" + mCurrentVersion.getPath();
         return s;
     }
     
@@ -547,6 +512,17 @@ public class GameUpdater implements Runnable {
                 len = input.read(buffer);
             }
             return new HexBinaryAdapter().marshal(sha1.digest());
+        }
+    }
+    
+    private void startDownloader(MinecraftResourceDownloader downloader, int initialPercentage, int finalPercentage) throws Exception {
+        downloader.download();
+        int i;
+        while ((i = downloader.getProgress()) != 1000) {
+            this.percentage = (int) (initialPercentage + (finalPercentage - initialPercentage)*((double)i/1000.0D));
+            synchronized (this) {
+                wait(50L);
+            }
         }
     }
 }
