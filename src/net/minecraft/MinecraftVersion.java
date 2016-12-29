@@ -93,9 +93,15 @@ public class MinecraftVersion implements MinecraftResource {
     }
     
     protected String getLaunchArgs() {
-        String s = minecraftArguments.replace("--version ${version_name}", "");
-        s = s.replace("--versionType ${version_type}", "");
-        s = s.replace("${game_directory}", Util.getWorkingDirectory().toString());
+        String s = minecraftArguments.replace("${game_directory}", Util.getWorkingDirectory().toString());
+        if (isLegacy()) {
+            s = s.replace("--version ${version_name}", "");
+            s = s.replace("--versionType ${version_type}", "");
+        } else {
+            s = s.replace("${version_name}", "2Toasty Minecraft");
+            s = s.replace("${version_type}", "Forge");
+            s += " --tweakClass net.minecraftforge.fml.common.launcher.FMLTweaker";
+        }
         s = s.replace("${assets_index_name}", getAssets());
         s = s.replace("${user_type}", "Legacy");
         String assetRoot = Util.getWorkingDirectory().toString()+"/assets";
