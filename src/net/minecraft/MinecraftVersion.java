@@ -100,7 +100,6 @@ public class MinecraftVersion implements MinecraftResource {
         } else {
             s = s.replace("${version_name}", "2Toasty Minecraft");
             s = s.replace("${version_type}", "Forge");
-            s += " --tweakClass net.minecraftforge.fml.common.launcher.FMLTweaker";
         }
         s = s.replace("${assets_index_name}", getAssets());
         s = s.replace("${user_type}", "Legacy");
