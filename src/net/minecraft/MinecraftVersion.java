@@ -91,4 +91,22 @@ public class MinecraftVersion implements MinecraftResource {
     public String getName() {
         return id + ".jar";
     }
+    
+    protected String getLaunchArgs() {
+        String s = minecraftArguments.replace("--version ${version_name}", "");
+        s = s.replace("--versionType ${version_type}", "");
+        s = s.replace("${game_directory}", Util.getWorkingDirectory().toString());
+        s = s.replace("${assets_index_name}", getAssets());
+        s = s.replace("${user_type}", "Legacy");
+        String assetRoot = Util.getWorkingDirectory().toString()+"/assets";
+        if (isLegacy())
+            assetRoot += "/virtual";
+        s = s.replace("${assets_root}", assetRoot);
+        s = s.replace("${game_assets}", assetRoot);
+        return s;
+    }
+    
+    protected String getAssets() {
+        return (assets == null) ? id : assets;
+    }
 }

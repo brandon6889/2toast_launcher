@@ -117,7 +117,7 @@ public class GameUpdater implements Runnable {
         percentage = 10;
         
         // Get asset config
-        String assetConfigPath = "assets/indexes/"+this.latestVersion+".json";
+        String assetConfigPath = "assets/indexes/"+mCurrentVersion.getAssets()+".json";
         mAssets = (MinecraftAssets)config.get(MinecraftAssets.class, assetConfigPath);
         this.percentage = 20;
         
@@ -381,5 +381,18 @@ public class GameUpdater implements Runnable {
                 wait(50L);
             }
         }
+    }
+    
+    protected String getLaunchArgs(String user, String token) {
+        String s = mCurrentVersion.getLaunchArgs();
+        s = s.replace("${auth_player_name}", user);
+        s = s.replace("${auth_uuid}", user);
+        s = s.replace("${auth_access_token}", token);
+        s = s.replace("${auth_session}", token);
+        return s;
+    }
+    
+    protected String getMainClass() {
+        return mCurrentVersion.mainClass;
     }
 }

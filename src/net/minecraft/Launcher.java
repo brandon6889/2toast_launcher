@@ -111,16 +111,14 @@ public class Launcher extends Applet implements Runnable, AppletStub {
                                 "/bin/" + Launcher.this.gameUpdater.getMCVersion() + "-natives");
                         launchCommand.add("-cp");
                         launchCommand.add(Launcher.this.gameUpdater.getClassPath());
-                        launchCommand.add("net.minecraft.launchwrapper.Launch");
-                        launchCommand.add(Launcher.this.customParameters.get("username"));
-                        launchCommand.add(Launcher.this.customParameters.get("sessionid"));
-                        launchCommand.add("--gameDir");
-                        launchCommand.add(Util.getWorkingDirectory().toString());
-                        launchCommand.add("--assetsDir");
-                        launchCommand.add(Util.getWorkingDirectory().toString()+"/assets/virtual");
+                        launchCommand.add(Launcher.this.gameUpdater.getMainClass());
+                        String username = Launcher.this.customParameters.get("username");
+                        String token = Launcher.this.customParameters.get("sessionid");
+                        for (String s : Launcher.this.gameUpdater.getLaunchArgs(username, token).split(" "))
+                            launchCommand.add(s);
                         launchCommand.add("--height 480 --width 854");
-                        /*System.out.print("COMMAND: ");
-                        for (String s : launchCommand) {
+                        System.out.print("COMMAND: ");
+                        /*for (String s : launchCommand) {
                         System.out.print(s + " ");
                         }
                         System.out.println();*/
