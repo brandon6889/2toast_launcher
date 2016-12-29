@@ -92,12 +92,12 @@ public class MinecraftResourceDownloader {
                 throw e;
         }
         synchronized (mLockProgress) {
-            if (mTotalSize == 0)
-                return 0;
             if (mTotalSize == mDownloadedSize) {
                 synchronized (mLockQueue) {
                     if (mInProgress.isEmpty())
                         return 1000;
+                    else
+                        return 0;
                 }
             } else {
                 synchronized (mLockQueue) {
