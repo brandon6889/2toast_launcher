@@ -117,8 +117,8 @@ public class Launcher extends Applet implements Runnable, AppletStub {
                         for (String s : Launcher.this.gameUpdater.getLaunchArgs(username, token).split(" "))
                             launchCommand.add(s);
                         launchCommand.add("--height 480 --width 854");
-                        System.out.print("COMMAND: ");
-                        /*for (String s : launchCommand) {
+                        /*System.out.print("COMMAND: ");
+                        for (String s : launchCommand) {
                         System.out.print(s + " ");
                         }
                         System.out.println();*/

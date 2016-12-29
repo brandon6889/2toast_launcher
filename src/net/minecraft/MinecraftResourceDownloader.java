@@ -101,8 +101,15 @@ public class MinecraftResourceDownloader {
                 }
             } else {
                 synchronized (mLockQueue) {
-                    if (mInProgress.isEmpty() && mWaiting.isEmpty())
-                        throw new Exception("Download: filesize mismatch");
+                    // This sometimes false-positives in failure conditions
+                    if (mInProgress.isEmpty() && mWaiting.isEmpty()) {
+                        synchronized (this) {
+                            if (e != null)
+                                throw e;
+                            else
+                                throw new Exception("Download: filesize mismatch: got " + mDownloadedSize + " bytes, expected " + mTotalSize);
+                        }
+                    }
                 }
             }
             int progress = (int)((1000*mDownloadedSize)/mTotalSize);
@@ -196,7 +203,7 @@ public class MinecraftResourceDownloader {
                 if (unsuccessfulAttempts < maxUnsuccessfulAttempts) {
                     downloadFile = true;
                 } else {
-                    throw new Exception("Failed to download " + resource.getName());
+                    throw new Exception("Failed to download " + resource.getName() + " from " + urlconnection.toString() + ": got " + downloadedAmount + " bytes, expected " + fileSize);
                 }
             }
             /*synchronized (mLockProgress) {

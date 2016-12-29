@@ -98,7 +98,7 @@ public class MinecraftVersion implements MinecraftResource {
             s = s.replace("--version ${version_name}", "");
             s = s.replace("--versionType ${version_type}", "");
         } else {
-            s = s.replace("${version_name}", "2Toasty Minecraft");
+            s = s.replace("${version_name}", "2Toasty");
             s = s.replace("${version_type}", "Forge");
         }
         s = s.replace("${assets_index_name}", getAssets());
