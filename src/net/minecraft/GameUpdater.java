@@ -41,6 +41,14 @@ public class GameUpdater implements Runnable {
     private final String latestVersion;
     protected static final String SERVER_URL = "http://2toast.net/minecraft/";
     
+    private static GameUpdater INSTANCE;
+    
+    public static GameUpdater getUpdater(String latestVersion) {
+        if (INSTANCE == null)
+            INSTANCE = new GameUpdater(latestVersion);
+        return INSTANCE;
+    }
+    
     private enum UpdaterStatus {
         INIT    ("Initializing Loader"),
         DL_CONF ("Fetching Configuration"),
@@ -64,7 +72,7 @@ public class GameUpdater implements Runnable {
     
     private UpdaterStatus state;
 
-    public GameUpdater(String latestVersion) {
+    private GameUpdater(String latestVersion) {
         state = UpdaterStatus.INIT;
         this.percentage = 0;
         this.latestVersion = latestVersion;

@@ -75,7 +75,7 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         this.customParameters.put("username", userName);
         this.customParameters.put("sessionid", sessionId);
         this.customParameters.put("downloadTag", downloadTag);
-        this.gameUpdater = new GameUpdater(latestVersion);
+        this.gameUpdater = GameUpdater.getUpdater(latestVersion);
     }
 
     @Override

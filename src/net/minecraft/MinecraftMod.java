@@ -1,5 +1,6 @@
 package net.minecraft;
 
+import com.google.gson.annotations.SerializedName;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -7,13 +8,20 @@ import java.net.URL;
 import java.net.URLConnection;
 
 public class MinecraftMod implements MinecraftResource {
-    final String mName;
+    /* JSON fields */
+    @SerializedName("name")
+    public String name;
+    @SerializedName("size")
+    public Integer size;
+    @SerializedName("hash")
+    public String hash;
+    
     final String mVer;
     private String mUrl;
     private int mSize = -1;
     
     public MinecraftMod(String name, String ver) {
-        mName = name;
+        this.name = name;
         mVer = ver;
     }
     
@@ -34,7 +42,7 @@ public class MinecraftMod implements MinecraftResource {
 
     @Override
     public String getPath() {
-        return "mods/" + mVer + "/" + mName;
+        return "mods/" + mVer + "/" + name;
     }
 
     @Override
@@ -49,6 +57,6 @@ public class MinecraftMod implements MinecraftResource {
 
     @Override
     public String getName() {
-        return mName;
+        return name;
     }
 }

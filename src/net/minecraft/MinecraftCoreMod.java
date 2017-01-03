@@ -7,6 +7,6 @@ public class MinecraftCoreMod extends MinecraftMod {
     
     @Override
     public String getPath() {
-        return "coremods/" + mVer + "/" + mName;
+        return "coremods/" + mVer + "/" + name;
     }
 }
