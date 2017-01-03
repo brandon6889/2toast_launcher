@@ -55,14 +55,14 @@ public class MinecraftLibrary implements MinecraftResource {
         } else {
             for (MinecraftLibraryRule r : rules) {
                 if (r.action.equals("disallow")) {
-                    if (r.os != null && (r.os.name == null || r.os.name.trim().equals("") || r.os.name.toLowerCase().equals(Util.getPlatform().toString()))) {
+                    if (r.supportsOS(Util.getPlatform().toString())) {
                         flag = false;
                         break;
                     }
                 } else {
                     if (r.os == null)
                         flag = true;
-                    else if (r.os.name == null || r.os.name.trim().equals("") || r.os.name.toLowerCase().equals(Util.getPlatform().toString()))
+                    else if (r.supportsOS(Util.getPlatform().toString()))
                         flag = true;
                 }
             }
@@ -148,16 +148,17 @@ public class MinecraftLibrary implements MinecraftResource {
                     if ((!entry.isDirectory()) && (entry.getName().indexOf('/') == -1)) {
                         File f = new File(nativePath + File.separator + entry.getName());
                         if ((!f.exists()) || (f.delete())) {
-                            InputStream in = jarFile.getInputStream(jarFile.getEntry(entry.getName()));
-                            OutputStream out = new FileOutputStream(f);
-                            byte[] buffer = new byte[65536];
-                            int bufferSize;
-                            while ((bufferSize = in.read(buffer, 0, buffer.length)) != -1) {
-                                out.write(buffer, 0, bufferSize);
-                                currentSizeExtract += bufferSize;
+                            OutputStream out;
+                            try (InputStream in = jarFile.getInputStream(jarFile.getEntry(entry.getName()))) {
+                                out = new FileOutputStream(f);
+                                byte[] buffer = new byte[65536];
+                                int bufferSize;
+                                while ((bufferSize = in.read(buffer, 0, buffer.length)) != -1) {
+                                    out.write(buffer, 0, bufferSize);
+                                    currentSizeExtract += bufferSize;
+                                }
+                                validateCertificateChain(certificate, entry.getCertificates());
                             }
-                            validateCertificateChain(certificate, entry.getCertificates());
-                            in.close();
                             out.close();
                         }
                     }
