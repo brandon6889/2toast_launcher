@@ -171,7 +171,6 @@ public class MinecraftResourceDownloader {
             }
         } catch (Exception e) {
             // The hash could not be checked, so force update.
-            System.out.println("Failed check for "+resource.getName()+" "+localFile.toString());
         }
 
         while (downloadFile) {
