@@ -127,6 +127,7 @@ public class GameUpdater implements Runnable {
         // Get asset config
         String assetConfigPath = "assets/indexes/"+mCurrentVersion.getAssets()+".json";
         mAssets = (MinecraftAssets)config.get(MinecraftAssets.class, assetConfigPath);
+        mAssets.initialize();
         this.percentage = 20;
         
         // Fetch mods list. Only stores filenames from colon-delimited file.

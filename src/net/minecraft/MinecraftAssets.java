@@ -7,13 +7,23 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class MinecraftAssets {
     /* JSON fields */
     @SerializedName("objects")
-    public ArrayList<MinecraftAssetsObject> objects;
+    public Map<String, MinecraftAssetsObject> objects;
     
     private MinecraftResourceDownloader mDownloader;
+    
+    /**
+     * Must be called after instantiation by Gson. Copies keys into objects as names.
+     */
+    protected void initialize() {
+        for (Entry<String, MinecraftAssetsObject> e : objects.entrySet())
+            e.getValue().name = e.getKey();
+    }
     
     /**
      * Build virtual asset dir for legacy games. Populates assets/virtual with
@@ -31,14 +41,14 @@ public class MinecraftAssets {
         
         /* Delete unneeded assets */
         List<String> assetFiles = new ArrayList();
-        for (MinecraftAssetsObject o : objects)
+        for (MinecraftAssetsObject o : objects.values())
             assetFiles.add(o.getName());
         for (String s : virtualFiles)
             if (!assetFiles.contains(s))
                 new File(virtualDir + File.separator + s).delete();
         
         /* Add missing assets */
-        for (MinecraftAssetsObject o : objects)
+        for (MinecraftAssetsObject o : objects.values())
             if (!virtualFiles.contains(o.getName())) {
                 File dest = new File(virtualDir+File.separator+o.getName());
                 dest.mkdirs();
@@ -64,7 +74,7 @@ public class MinecraftAssets {
     
     protected MinecraftResourceDownloader createDownloader(String path) throws Exception {
         ArrayList<MinecraftResource> o = new ArrayList();
-        o.addAll(objects);
+        o.addAll(objects.values());
         mDownloader = new MinecraftResourceDownloader(path, this);
         mDownloader.addResources(o);
         mDownloader.sortResources(MinecraftResource.SIZESORT);
