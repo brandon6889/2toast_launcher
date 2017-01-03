@@ -28,12 +28,16 @@ public class MinecraftMod implements MinecraftResource {
         if (mUrl == null)
             mUrl = GameUpdater.SERVER_URL+getPath();
         if (mSize == -1) {
-            URLConnection urlconnection = new URL(mUrl).openConnection();
-            urlconnection.setDefaultUseCaches(false);
-            if ((urlconnection instanceof HttpURLConnection)) {
-                ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
+            if (size != null) {
+                mSize = size;
+            } else {
+                URLConnection urlconnection = new URL(mUrl).openConnection();
+                urlconnection.setDefaultUseCaches(false);
+                if ((urlconnection instanceof HttpURLConnection)) {
+                    ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
+                }
+                mSize = urlconnection.getContentLength();
             }
-            mSize = urlconnection.getContentLength();
         }
         return mSize;
     }
@@ -50,7 +54,9 @@ public class MinecraftMod implements MinecraftResource {
 
     @Override
     public String getHash() throws Exception {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (hash != null)
+            return hash;
+        throw new Exception("No hash available");
     }
 
     @Override
