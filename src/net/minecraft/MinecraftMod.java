@@ -16,13 +16,11 @@ public class MinecraftMod implements MinecraftResource {
     @SerializedName("hash")
     public String hash;
     
-    final String mVer;
     private String mUrl;
     private int mSize = -1;
     
-    public MinecraftMod(String name, String ver) {
+    public MinecraftMod(String name) {
         this.name = name;
-        mVer = ver;
     }
     
     @Override
@@ -42,7 +40,7 @@ public class MinecraftMod implements MinecraftResource {
 
     @Override
     public String getPath() {
-        return "mods/" + mVer + "/" + name;
+        return "mods/" + GameUpdater.getUpdater("dummy").getMCVersion() + "/" + name;
     }
 
     @Override

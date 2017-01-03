@@ -142,7 +142,7 @@ public class GameUpdater implements Runnable {
             StringTokenizer mod = new StringTokenizer(modList, ":");
             int modCount = mod.countTokens();
             for (int i = 0; i < modCount-1; i++) {
-                mModList.add(new MinecraftMod(mod.nextToken(), latestVersion));
+                mModList.add(new MinecraftMod(mod.nextToken()));
             }
             modListStream.close();
             downloadTime = System.currentTimeMillis() - downloadTime;
@@ -165,7 +165,7 @@ public class GameUpdater implements Runnable {
             StringTokenizer mod = new StringTokenizer(modList, ":");
             int modCount = mod.countTokens();
             for (int i = 0; i < modCount-1; i++) {
-                mCoreModList.add(new MinecraftCoreMod(mod.nextToken(), latestVersion));
+                mCoreModList.add(new MinecraftCoreMod(mod.nextToken()));
             }
             modListStream.close();
             downloadTime = System.currentTimeMillis() - downloadTime;
