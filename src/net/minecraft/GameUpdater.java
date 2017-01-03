@@ -5,38 +5,28 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLConnection;
 import java.security.AccessControlException;
 import java.util.Enumeration;
 import java.util.LinkedList;
-import java.util.StringTokenizer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import com.google.gson.Gson;
-import java.util.ArrayList;
 
 public class GameUpdater implements Runnable {
     protected int percentage;
     protected static boolean force = false;
     private MinecraftVersion mCurrentVersion;
     private final LinkedList<MinecraftLibrary> mLibraries = new LinkedList();
-    private final LinkedList<MinecraftResource> mModList = new LinkedList();
-    private final LinkedList<MinecraftResource> mCoreModList = new LinkedList();
+    private MinecraftModList mMods;
     private MinecraftAssets mAssets;
-    private static ClassLoader classLoader;
     protected boolean fatalError;
     protected String fatalErrorDescription;
-    protected Gson gson = new Gson();
 
     private final String latestVersion;
     protected static final String SERVER_URL = "http://2toast.net/minecraft/";
@@ -98,81 +88,35 @@ public class GameUpdater implements Runnable {
         return state.getDescription();
     }
 
-    public static String convertStreamToString(java.io.InputStream is) {
-        String out;
-        try (java.util.Scanner s = new java.util.Scanner(is)) {
-            s.useDelimiter("\\A");
-            out = s.hasNext() ? s.next() : "";
-        }
-        return out;
-    }
-
     protected void loadJarURLs(String path) throws Exception {
         this.state = UpdaterStatus.DL_CONF;
         
         // Offline play not supported. Get legit MC.
-        if (this.latestVersion == null || this.latestVersion.equals("")) throw new Exception("Unknown Version");
+        if (this.latestVersion == null || latestVersion.equals("")) throw new Exception("Unknown Version");
         
-        System.out.println("Fetching config for Minecraft "+this.latestVersion);
+        System.out.println("Fetching config for Minecraft "+latestVersion);
         ConfigurationFetcher config = new ConfigurationFetcher(path, SERVER_URL);
         
-        // Get game config
-        String gameConfigPath = "versions/"+this.latestVersion+".json";
+        // Get game config.
+        String gameConfigPath = "versions/"+latestVersion+".json";
         mCurrentVersion = (MinecraftVersion)config.get(MinecraftVersion.class, gameConfigPath);
         for (MinecraftLibrary library : mCurrentVersion.libraries)
             if (library.allow())
                 mLibraries.add(library);
         percentage = 10;
         
-        // Get asset config
+        // Get asset config.
         String assetConfigPath = "assets/indexes/"+mCurrentVersion.getAssets()+".json";
         mAssets = (MinecraftAssets)config.get(MinecraftAssets.class, assetConfigPath);
         mAssets.initialize();
         this.percentage = 20;
         
-        // Fetch mods list. Only stores filenames from colon-delimited file.
+        // Get mods config.
+        String modConfigPath = "mods/"+latestVersion+".json";
         try {
-            long downloadTime = System.currentTimeMillis();
-            URLConnection modSource = new URL(SERVER_URL+"mods/"+this.latestVersion+".txt").openConnection();
-            if (modSource instanceof HttpURLConnection) {
-                modSource.setRequestProperty("Cache-Control", "no-cache");
-                modSource.connect();
-            }
-            InputStream modListStream = modSource.getInputStream();
-            String modList = convertStreamToString(modListStream);
-            StringTokenizer mod = new StringTokenizer(modList, ":");
-            int modCount = mod.countTokens();
-            for (int i = 0; i < modCount-1; i++) {
-                mModList.add(new MinecraftMod(mod.nextToken()));
-            }
-            modListStream.close();
-            downloadTime = System.currentTimeMillis() - downloadTime;
-            System.out.println("Got mod index in "+downloadTime+"ms");
-        } catch (FileNotFoundException e) {
-            System.out.println("No mods found for version "+this.latestVersion);
-        }
-        this.percentage = 30;
-        
-        // Fetch coremods list. Only stores filenames from colon-delimited file.
-        try {
-            long downloadTime = System.currentTimeMillis();
-            URLConnection modSource = new URL(SERVER_URL+"coremods/"+this.latestVersion+".txt").openConnection();
-            if (modSource instanceof HttpURLConnection) {
-                modSource.setRequestProperty("Cache-Control", "no-cache");
-                modSource.connect();
-            }
-            InputStream modListStream = modSource.getInputStream();
-            String modList = convertStreamToString(modListStream);
-            StringTokenizer mod = new StringTokenizer(modList, ":");
-            int modCount = mod.countTokens();
-            for (int i = 0; i < modCount-1; i++) {
-                mCoreModList.add(new MinecraftCoreMod(mod.nextToken()));
-            }
-            modListStream.close();
-            downloadTime = System.currentTimeMillis() - downloadTime;
-            System.out.println("Got coremod index in "+downloadTime+"ms");
-        } catch (FileNotFoundException e) {
-            System.out.println("No coremods found for version "+this.latestVersion);
+            mMods = (MinecraftModList)config.get(MinecraftModList.class, modConfigPath);
+        } catch (Exception e) {
+            System.out.println("No mods found.");
         }
         this.percentage = 40;
     }
@@ -238,10 +182,8 @@ public class GameUpdater implements Runnable {
     protected void downloadLibraries(String path) throws Exception {
         this.state = UpdaterStatus.DL_LIBS;
         
-        ArrayList<MinecraftResource> o = new ArrayList();
-        o.addAll(mLibraries);
         MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
-        downloader.addResources(o);
+        downloader.addResources(mLibraries);
         startDownloader(downloader, 50, 300);
     }
 
@@ -260,8 +202,8 @@ public class GameUpdater implements Runnable {
         new File(path+"coremods").mkdirs();
         
         MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
-        downloader.addResources(mCoreModList);
-        downloader.download();
+        if (mMods.coremods != null)
+            downloader.addResources(mMods.coremods);
         startDownloader(downloader, 800, 850);
     }
     
@@ -273,7 +215,8 @@ public class GameUpdater implements Runnable {
         new File(path+"mods").mkdirs();
         
         MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
-        downloader.addResources(mModList);
+        if (mMods.mods != null)
+            downloader.addResources(mMods.mods);
         startDownloader(downloader, 550, 800);
     }
     
@@ -369,8 +312,9 @@ public class GameUpdater implements Runnable {
         if (Util.getPlatform() == Util.OS.windows)
             delim = ";";
         String s = "";
-        for (MinecraftResource r : this.mCoreModList)
-            s += Util.getWorkingDirectory() + "/" + r.getPath() + delim;
+        if (mMods != null)
+            for (String s2 : mMods.getCoremodPaths())
+                s += Util.getWorkingDirectory() + "/" + s2 + delim;
         for (MinecraftLibrary l : mLibraries)
             s += Util.getWorkingDirectory() + "/" + l.getPath() + delim;
         s += Util.getWorkingDirectory() + "/" + mCurrentVersion.getPath();

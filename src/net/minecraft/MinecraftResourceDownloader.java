@@ -59,7 +59,7 @@ public class MinecraftResourceDownloader {
      * @param resources
      * @throws IOException 
      */
-    protected void addResources(List<MinecraftResource> resources) throws IOException {
+    protected void addResources(List<? extends MinecraftResource> resources) throws IOException {
         mWaiting.addAll(resources);
         
         /* Remove any duplicate assets, esp. in legacy. Since we store files per hash this is an issue. */

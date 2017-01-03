@@ -4,7 +4,6 @@ import com.google.gson.annotations.SerializedName;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLConnection;
 
 public class MinecraftMod implements MinecraftResource {
@@ -16,22 +15,19 @@ public class MinecraftMod implements MinecraftResource {
     @SerializedName("hash")
     public String hash;
     
-    private String mUrl;
+    /**
+     * Note for future reference: this initialization does not occur if a
+     * constructor is defined. What a headache.
+     */
     private int mSize = -1;
-    
-    public MinecraftMod(String name) {
-        this.name = name;
-    }
     
     @Override
     public int getSize() throws MalformedURLException, IOException {
-        if (mUrl == null)
-            mUrl = GameUpdater.SERVER_URL+getPath();
         if (mSize == -1) {
             if (size != null) {
                 mSize = size;
             } else {
-                URLConnection urlconnection = new URL(mUrl).openConnection();
+                URLConnection urlconnection = getUrl().openConnection();
                 urlconnection.setDefaultUseCaches(false);
                 if ((urlconnection instanceof HttpURLConnection)) {
                     ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
