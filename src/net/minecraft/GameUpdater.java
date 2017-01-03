@@ -147,7 +147,6 @@ public class GameUpdater implements Runnable {
                     downloadLibraries(path);
                     downloadAssets(path);
                     downloadMods(path);
-                    downloadCoreMods(path);
                     downloadGame(path);
                     extractFiles(path);
                     if (this.latestVersion != null) {
@@ -184,40 +183,28 @@ public class GameUpdater implements Runnable {
         
         MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
         downloader.addResources(mLibraries);
-        startDownloader(downloader, 50, 300);
+        startDownloader(downloader, 50, 350);
     }
 
     protected void downloadAssets(String path) throws Exception {
         this.state = UpdaterStatus.DL_RES;
 
         MinecraftResourceDownloader d = mAssets.createDownloader(path);
-        startDownloader(d, 300, 550);
-    }
-    
-    protected void downloadCoreMods(String path) throws Exception {
-        this.state = UpdaterStatus.DL_MODS;
-        
-        /* For now, delete the folder to purge stale mods... */
-        new File(path+"coremods").delete();
-        new File(path+"coremods").mkdirs();
-        
-        MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
-        if (mMods.coremods != null)
-            downloader.addResources(mMods.coremods);
-        startDownloader(downloader, 800, 850);
+        startDownloader(d, 350, 650);
     }
     
     protected void downloadMods(String path) throws Exception {
         this.state = UpdaterStatus.DL_MODS;
         
-        /* For now, delete the folder to purge stale mods... */
-        new File(path+"mods").delete();
+        new File(path+"coremods").mkdirs();
         new File(path+"mods").mkdirs();
         
         MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
         if (mMods.mods != null)
             downloader.addResources(mMods.mods);
-        startDownloader(downloader, 550, 800);
+        if (mMods.coremods != null)
+            downloader.addResources(mMods.coremods);
+        startDownloader(downloader, 650, 950);
     }
     
     protected void downloadGame(String path) throws Exception {
@@ -228,7 +215,7 @@ public class GameUpdater implements Runnable {
         
         MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
         downloader.addResources(game);
-        startDownloader(downloader, 850, 950);
+        startDownloader(downloader, 950, 990);
     }
 
     static protected InputStream getJarInputStream(String currentFile, final URLConnection urlconnection) throws Exception {
