@@ -30,6 +30,8 @@ public class MinecraftVersion implements MinecraftResource {
     public int minimumLauncherVersion;
     @SerializedName("libraries")
     public LinkedList<MinecraftLibrary> libraries;
+    @SerializedName("hash")
+    public String hash;
     
     /* Internal data */
     private int mFileSize = -1;
@@ -84,6 +86,8 @@ public class MinecraftVersion implements MinecraftResource {
 
     @Override
     public String getHash() throws Exception {
+        if (hash != null)
+            return hash;
         throw new Exception("Hash does not exist for Minecraft JAR");
     }
 
