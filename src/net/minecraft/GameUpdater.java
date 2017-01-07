@@ -15,6 +15,7 @@ import java.net.URLConnection;
 import java.security.AccessControlException;
 import java.util.Enumeration;
 import java.util.LinkedList;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -324,9 +325,10 @@ public class GameUpdater implements Runnable {
     }
     
     protected String getLaunchArgs(String user, String token) {
+        String uuid = UUID.nameUUIDFromBytes(user.getBytes()).toString();
         String s = mCurrentVersion.getLaunchArgs();
         s = s.replace("${auth_player_name}", user);
-        s = s.replace("${auth_uuid}", user);
+        s = s.replace("${auth_uuid}", uuid);
         s = s.replace("${auth_access_token}", token);
         s = s.replace("${auth_session}", token);
         return s;
