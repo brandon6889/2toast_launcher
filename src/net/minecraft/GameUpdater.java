@@ -190,7 +190,7 @@ public class GameUpdater implements Runnable {
     protected void downloadAssets(String path) throws Exception {
         this.state = UpdaterStatus.DL_RES;
 
-        MinecraftResourceDownloader d = mAssets.createDownloader(path);
+        MinecraftResourceDownloader d = mAssets.createDownloader(path, this);
         startDownloader(d, 350, 650);
     }
     
@@ -200,11 +200,7 @@ public class GameUpdater implements Runnable {
         new File(path+"coremods").mkdirs();
         new File(path+"mods").mkdirs();
         
-        MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
-        if (mMods.mods != null)
-            downloader.addResources(mMods.mods);
-        if (mMods.coremods != null)
-            downloader.addResources(mMods.coremods);
+        MinecraftResourceDownloader downloader = mMods.createDownloader(path, this);
         startDownloader(downloader, 650, 950);
     }
     

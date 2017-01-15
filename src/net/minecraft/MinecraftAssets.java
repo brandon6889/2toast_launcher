@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class MinecraftAssets {
+public class MinecraftAssets extends MinecraftResourceList {
     /* JSON fields */
     @SerializedName("objects")
     public Map<String, MinecraftAssetsObject> objects;
@@ -56,33 +56,14 @@ public class MinecraftAssets {
             }
     }
     
-    /**
-     * Create list of files in directory recursively.
-     * @param dir Directory to search.
-     * @return List of files in subfolders.
-     */
-    private List<File> enumFiles(File dir) {
-        List<File> files = new ArrayList();
-        for (File f : dir.listFiles()) {
-            if (f.isDirectory())
-                files.addAll(enumFiles(f));
-            else
-                files.add(f);
-        }
-        return files;
-    }
-    
-    protected MinecraftResourceDownloader createDownloader(String path) throws Exception {
+    @Override
+    protected MinecraftResourceDownloader createDownloader(String path, Object caller) throws Exception {
         ArrayList<MinecraftResource> o = new ArrayList();
         o.addAll(objects.values());
-        mDownloader = new MinecraftResourceDownloader(path, this);
+        mDownloader = new MinecraftResourceDownloader(path, caller);
         mDownloader.addResources(o);
         mDownloader.sortResources(MinecraftResource.SIZESORT);
         mDownloader.setConcurrentDownloads(4);
         return mDownloader;
-    }
-    
-    protected int getProgress() throws Exception {
-        return mDownloader.getProgress();
     }
 }
