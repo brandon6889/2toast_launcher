@@ -202,6 +202,8 @@ public class GameUpdater implements Runnable {
         
         MinecraftResourceDownloader downloader = mMods.createDownloader(path, this);
         startDownloader(downloader, 650, 950);
+        
+        mMods.cleanup(path);
     }
     
     protected void downloadGame(String path) throws Exception {

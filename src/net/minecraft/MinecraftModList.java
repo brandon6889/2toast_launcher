@@ -37,4 +37,34 @@ public class MinecraftModList extends MinecraftResourceList {
             mDownloader.addResources(coremods);
         return mDownloader;
     }
+    
+    /**
+     * Delete mods that should no longer be installed.
+     * @param path Minecraft home folder.
+     * @throws IOException 
+     */
+    protected void cleanup(String path) throws IOException {
+        File modDir = new File(path+"mods/"+GameUpdater.getUpdater("dummy").getMCVersion()+"/");
+        File coremodDir = new File(path+"coremods/"+GameUpdater.getUpdater("dummy").getMCVersion()+"/");
+        modDir.mkdirs();
+        coremodDir.mkdirs();
+        if (coremods == null)
+            Util.delete(coremodDir);
+        if (mods == null) {
+            Util.delete(modDir);
+        } else {
+            List<File> currentFiles = enumFiles(modDir);
+            List<String> modFiles = new ArrayList();
+            for (File f : currentFiles)
+                modFiles.add(f.getPath().substring(modDir.getPath().length()+1));
+
+            /* Delete outdated mods */
+            List<String> desiredFiles = new ArrayList();
+            for (MinecraftResource o : mods)
+                desiredFiles.add(o.getName());
+            for (String s : modFiles)
+                if (!desiredFiles.contains(s))
+                    new File(modDir + File.separator + s).delete();
+        }
+    }
 }
