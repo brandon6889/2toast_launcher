@@ -9,3 +9,7 @@ mapping.proguard
 !.gitignore
 .*.swp
 .*.kate-swp
+
+# Files created by MC if launched in here..
+asm/*
+logs/*
