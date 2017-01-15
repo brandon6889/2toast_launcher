@@ -104,12 +104,16 @@ public class GameUpdater implements Runnable {
         for (MinecraftLibrary library : mCurrentVersion.libraries)
             if (library.allow())
                 mLibraries.add(library);
+        if (config.needUpdate())
+            force = true;
         percentage = 10;
         
         // Get asset config.
         String assetConfigPath = "assets/indexes/"+mCurrentVersion.getAssets()+".json";
         mAssets = (MinecraftAssets)config.get(MinecraftAssets.class, assetConfigPath);
         mAssets.initialize();
+        if (config.needUpdate())
+            force = true;
         this.percentage = 20;
         
         // Get mods config.
@@ -119,6 +123,8 @@ public class GameUpdater implements Runnable {
         } catch (Exception e) {
             System.out.println("No mods found.");
         }
+        if (config.needUpdate())
+            force = true;
         this.percentage = 40;
     }
 

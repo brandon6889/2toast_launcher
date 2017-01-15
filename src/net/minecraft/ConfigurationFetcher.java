@@ -8,6 +8,10 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import com.google.gson.Gson;
+import java.io.IOException;
+import java.nio.file.Files;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import java.security.NoSuchAlgorithmException;
 
 public class ConfigurationFetcher {
     private final Gson mGson = new Gson();
@@ -16,6 +20,10 @@ public class ConfigurationFetcher {
     private final String mPath;
     /* Remote base path */
     private final String mServer;
+    /* Track whether config is new/needs update. */
+    private boolean mLastConfigNeedsUpdate = false;
+    /* Downloaded config */
+    private String mCurPath;
     
     public ConfigurationFetcher(String path, String serverUrl) {
         mPath = path;
@@ -23,6 +31,8 @@ public class ConfigurationFetcher {
     }
     
     public Object get(Class clazz, String path) throws Exception {
+        mLastConfigNeedsUpdate = false;
+        mCurPath = path;
         File dir = new File(mPath + path.substring(0,path.lastIndexOf("/")));
         if (!dir.exists())
             dir.mkdirs();
@@ -33,6 +43,10 @@ public class ConfigurationFetcher {
         if (configSource instanceof HttpURLConnection) {
             configSource.setRequestProperty("Cache-Control", "no-cache");
             configSource.connect();
+        }
+        if (new File(mPath + path).exists()) {
+            path += ".new";
+            mLastConfigNeedsUpdate = true;
         }
         FileOutputStream fos;
         byte[] buffer = new byte[65536];
@@ -49,5 +63,18 @@ public class ConfigurationFetcher {
         System.out.println("Got " + fileName + " in "+downloadTime+"ms");
         
         return mGson.fromJson(Util.readFile(new File(mPath + path)), clazz);
+    }
+    
+    public boolean needUpdate() {
+        File newConf = new File(mPath + mCurPath + ".new");
+        File oldConf = new File(mPath + mCurPath);
+        if (mLastConfigNeedsUpdate) {
+            try {
+                mLastConfigNeedsUpdate = !MinecraftResourceDownloader.calcSHA1(oldConf)
+                                 .equals(MinecraftResourceDownloader.calcSHA1(newConf));
+                Files.move(newConf.toPath(), oldConf.toPath(), REPLACE_EXISTING);
+            } catch (IOException | NoSuchAlgorithmException e) {/* Default to true, sure. */}
+        }
+        return mLastConfigNeedsUpdate;
     }
 }
