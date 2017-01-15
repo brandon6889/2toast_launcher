@@ -30,6 +30,8 @@ public class MinecraftVersion implements MinecraftResource {
     public int minimumLauncherVersion;
     @SerializedName("libraries")
     public LinkedList<MinecraftLibrary> libraries;
+    @SerializedName("size")
+    public Integer size;
     @SerializedName("hash")
     public String hash;
     
@@ -47,16 +49,16 @@ public class MinecraftVersion implements MinecraftResource {
     public int getSize() throws MalformedURLException, IOException {
         if (mFileSize == -1) {
             mUrl = GameUpdater.SERVER_URL + getPath();
-            /*if (size != null) {
+            if (size != null) {
                 mFileSize = size;
-            } else {*/
+            } else {
                 URLConnection urlconnection = new URL(mUrl).openConnection();
                 urlconnection.setDefaultUseCaches(false);
                 if ((urlconnection instanceof HttpURLConnection)) {
                     ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
                 }
                 mFileSize = urlconnection.getContentLength();
-            //}
+            }
         }
         return mFileSize;
     }
