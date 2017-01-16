@@ -20,6 +20,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.KeyStore;
 import java.security.Permission;
 import java.security.PermissionCollection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -248,5 +250,21 @@ public class Util {
                 return FileVisitResult.CONTINUE;
             }
         });
+    }
+    
+    /**
+     * Create list of files in directory recursively.
+     * @param dir Directory to search.
+     * @return List of files in subfolders.
+     */
+    static List<File> enumFiles(File dir) {
+        List<File> files = new ArrayList();
+        for (File f : dir.listFiles()) {
+            if (f.isDirectory())
+                files.addAll(enumFiles(f));
+            else
+                files.add(f);
+        }
+        return files;
     }
 }

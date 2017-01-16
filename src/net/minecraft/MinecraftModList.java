@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MinecraftModList extends MinecraftResourceList {
+public class MinecraftModList {
     /* JSON fields */
     @SerializedName("mods")
     public LinkedList<MinecraftMod> mods;
@@ -28,7 +28,6 @@ public class MinecraftModList extends MinecraftResourceList {
         return l;
     }
     
-    @Override
     protected MinecraftResourceDownloader createDownloader(String path, Object caller) throws Exception {
         mDownloader = new MinecraftResourceDownloader(path, caller);
         if (mods != null)
@@ -53,7 +52,7 @@ public class MinecraftModList extends MinecraftResourceList {
         if (mods == null) {
             Util.delete(modDir);
         } else {
-            List<File> currentFiles = enumFiles(modDir);
+            List<File> currentFiles = Util.enumFiles(modDir);
             List<String> modFiles = new ArrayList();
             for (File f : currentFiles)
                 modFiles.add(f.getPath().substring(modDir.getPath().length()+1));

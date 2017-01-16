@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class MinecraftAssets extends MinecraftResourceList {
+public class MinecraftAssets {
     /* JSON fields */
     @SerializedName("objects")
     public Map<String, MinecraftAssetsObject> objects;
@@ -34,7 +34,7 @@ public class MinecraftAssets extends MinecraftResourceList {
     protected void buildVirtualDir(String path) throws IOException {
         File virtualDir = new File(path+"assets/virtual/");
         virtualDir.mkdirs();
-        List<File> currentFiles = enumFiles(virtualDir);
+        List<File> currentFiles = Util.enumFiles(virtualDir);
         List<String> virtualFiles = new ArrayList();
         for (File f : currentFiles)
             virtualFiles.add(f.getPath().substring(virtualDir.getPath().length()));
@@ -56,7 +56,6 @@ public class MinecraftAssets extends MinecraftResourceList {
             }
     }
     
-    @Override
     protected MinecraftResourceDownloader createDownloader(String path, Object caller) throws Exception {
         ArrayList<MinecraftResource> o = new ArrayList();
         o.addAll(objects.values());
