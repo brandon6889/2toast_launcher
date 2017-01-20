@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -97,7 +96,7 @@ public class Util {
     protected static String executePost(String targetURL, String urlParameters) {
     	if (System.getProperty("java.runtime.name").equals("Java(TM) SE Runtime Environment")) {
     	    try { // Bypass cryptographic limitations
-        	    /*
+        	/*
                  * Do the following, but with reflection to bypass access checks:
                  *
                  * JceSecurity.isRestricted = false;
@@ -123,14 +122,7 @@ public class Util {
                 
                 instanceField.setAccessible(true);
                 defaultPolicy.add((Permission) instanceField.get(null));
-            } catch (Exception e) {
-                System.err.println("========= WARNING =========");
-                //System.err.println();
-                //e.printStackTrace();
-                //System.err.println();
-                System.err.println("Warning: Cryptographic restrictions may be present.");
-                //System.err.println("========= WARNING =========");
-            }
+            } catch (Exception e) {}
     	}
         
         HttpsURLConnection connection = null;
