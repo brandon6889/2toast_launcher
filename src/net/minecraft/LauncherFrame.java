@@ -26,9 +26,11 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import javax.swing.JOptionPane;
+
 public class LauncherFrame extends Frame {
     public static final int VERSION = 14;
-    public static final String USERVERSION = "1.1";
+    public static final String USERVERSION = "1.2";
     private static final long serialVersionUID = 1L;
     private Launcher launcher;
     private LoginForm loginForm;
@@ -43,11 +45,16 @@ public class LauncherFrame extends Frame {
         float heapSizeMegs = (float) (Runtime.getRuntime().maxMemory() / 1024L / 1024L);
         System.out.println("Heap size:    " + heapSizeMegs);
         System.out.println();
+        if (System.getProperty("sun.arch.data.model").equals("32")) {
+            JOptionPane.showMessageDialog(frame, "32-bit Java not supported. Please update to latest Java 8 64-bit.");
+            frame.dispose();
+            System.exit(2);
+            return;
+        }
         this.setBackground(new Color(0, 0, 0));
         this.loginForm = new LoginForm(this);
         this.setLayout(new BorderLayout());
         this.add(this.loginForm, "Center");
-        
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         int width = gd.getDisplayMode().getWidth();
         int height = gd.getDisplayMode().getHeight();
