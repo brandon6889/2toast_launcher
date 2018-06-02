@@ -3,10 +3,8 @@
 
 -verbose
 
-#-libraryjars /usr/lib64/jvm/java-1.8.0-openjdk-1.8.0/jre/lib/rt.jar
-#-libraryjars /usr/lib64/jvm/java-1.8.0-openjdk-1.8.0/jre/lib/jce.jar
--libraryjars /usr/java/latest/jre/lib/rt.jar
--libraryjars /usr/java/latest/jre/lib/jce.jar
+-libraryjars <java.home>/lib/rt.jar
+-libraryjars <java.home>/lib/jce.jar
 -libraryjars libsrc
 
 -dontskipnonpubliclibraryclassmembers
