@@ -30,7 +30,7 @@ import javax.swing.JOptionPane;
 
 public class LauncherFrame extends Frame {
     public static final int VERSION = 14;
-    public static final String USERVERSION = "1.2";
+    public static final String USERVERSION = "1.3";
     private static final long serialVersionUID = 1L;
     private Launcher launcher;
     private LoginForm loginForm;
