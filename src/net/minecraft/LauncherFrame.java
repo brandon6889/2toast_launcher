@@ -41,12 +41,13 @@ public class LauncherFrame extends Frame {
         System.out.println("== 2Toasty Launcher v" + USERVERSION + " ==");
         System.out.println();
         System.out.println("Java Runtime: "+System.getProperty("java.runtime.name"));
-        System.out.println("Java Version: "+System.getProperty("java.runtime.version") + " ("+System.getProperty("java.specification.version")+")");
+        System.out.println("Java Version: "+System.getProperty("java.vm.name")+" "+System.getProperty("java.version")+" " +System.getProperty("sun.arch.data.model")+" ("+System.getProperty("java.specification.version")+")");
         float heapSizeMegs = (float) (Runtime.getRuntime().maxMemory() / 1024L / 1024L);
         System.out.println("Heap size:    " + heapSizeMegs);
         System.out.println();
         if (System.getProperty("sun.arch.data.model").equals("32")) {
-            JOptionPane.showMessageDialog(frame, "32-bit Java not supported. Please update to latest Java 8 64-bit.");
+            System.out.println("Quitting due to 32-bit Java runtime.");
+            JOptionPane.showMessageDialog(frame, "32-bit Java not supported. Please update to at least Java 8 64-bit.");
             frame.dispose();
             System.exit(2);
             return;
