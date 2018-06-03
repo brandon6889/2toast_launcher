@@ -201,6 +201,9 @@ public class GameUpdater implements Runnable {
     }
     
     protected void downloadMods(String path) throws Exception {
+        if (mMods == null)
+            return;
+        
         this.state = UpdaterStatus.DL_MODS;
         
         new File(path+"coremods").mkdirs();
