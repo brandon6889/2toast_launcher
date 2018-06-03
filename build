@@ -16,7 +16,7 @@ do
   echo done.
   
   echo -n "LZMA'ing the Pack200'd jar... "
-  /usr/local/bin/lzma -z launcher.pack
+  lzma -z launcher.pack
   echo done.
   
   break
