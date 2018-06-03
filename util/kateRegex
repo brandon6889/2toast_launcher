@@ -7,3 +7,9 @@ Replace {
 Find "url": json fields in assets for legacy versions.
 
 \"url\"\: \"http([s]*)://([\-\_\/\.a-zA-Z0-9]*)\"
+
+
+Convert version json to my format
+
+Search \"dow[ \"\:\_\/\.a-zA-Z0-9\{\n-.]*sha1\"\: \"([a-z0-9]*)\",[\n ]*\"size\"\: ([0-9]*)[ \n]*\}[ \n]*\}
+Replace "sha1"\: \"\1\",\n      \"size\"\: \2
