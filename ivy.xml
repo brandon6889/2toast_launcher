@@ -1,6 +1,0 @@
-<ivy-module version="2.0">
-  <info organisation="net" module="minecraft"/>
-  <dependencies>
-    <dependency org="javax.xml.bind" name="jaxb-api" rev="2.3.0"/>
-  </dependencies>
-</ivy-module>

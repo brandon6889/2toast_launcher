@@ -1,4 +1,4 @@
-<project name="2toast launcher" default="dist" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+<project name="2toast launcher" default="dist" basedir=".">
   <description>
     2toast launcher manages the Minecraft client and resources
   </description>
@@ -9,37 +9,7 @@
   <property name="lib" location="lib"/>
   <property name="obfclass" location="obf"/>
 
-  <!-- Apache Ivy -->
-  <property name="ivy.install.version" value="2.5.0-rc1"/>
-  <condition property="ivy.home" value="${env.IVY_HOME}">
-    <isset property="env.IVY_HOME"/>
-  </condition>
-  <property name="ivy.home" value="${user.home}/.ant"/>
-  <property name="ivy.jar.dir" value="${ivy.home}/lib"/>
-  <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
-
-  <target name="check-ivy">
-    <available file="${ivy.jar.file}" property="ivy.jar.present"/>
-  </target>
-
-  <target name="download-ivy" depends="check-ivy" unless="ivy.jar.present">
-    <mkdir dir="${ivy.jar.dir}"/>
-    <get src="https://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true"/>
-  </target>
-
-  <target name="init-ivy" depends="download-ivy">
-    <path id="ivy.lib.path">
-      <fileset dir="${ivy.jar.dir}" includes="*.jar"/>
-    </path>
-    <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
-  </target>
-
-  <target name="resolve" depends="init-ivy" description="Retrieve dependencies with Ivy">
-    <ivy:retrieve/>
-  </target>
-  <!-- End Apache Ivy -->
-
-  <target name="init" depends="resolve">
+  <target name="init">
     <tstamp/>
     <delete dir="${build}"/>
     <mkdir dir="${build}"/>
