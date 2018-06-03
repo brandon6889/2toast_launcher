@@ -130,7 +130,7 @@ public class MinecraftLibrary implements MinecraftResource {
                 jurl.setDefaultUseCaches(true);
                 try {
                     certificate = jurl.getCertificates();
-                } catch (Exception localException) {
+                } catch (IOException le) {
                 }
             }
             try (JarFile jarFile = new JarFile(rootPath + getPath(), true)) {

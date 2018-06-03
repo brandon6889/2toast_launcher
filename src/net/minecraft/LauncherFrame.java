@@ -19,6 +19,7 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
@@ -94,6 +95,8 @@ public class LauncherFrame extends Frame {
         
         setVisible(true);
         frame.dispose();
+        
+        this.loginForm.startMusicThread();
     }
 
     public void playCached(String userName) {
@@ -151,7 +154,7 @@ public class LauncherFrame extends Frame {
             this.loginForm = null;
             this.setTitle("2Toasty Minecraft");
             this.validate();
-        } catch (Exception e) {
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             showError(e.toString());
             this.loginForm.setNoNetwork();

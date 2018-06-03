@@ -62,6 +62,7 @@ public class LoginForm extends Panel {
     private LauncherFrame launcher;
     private InputStream menuMusicInputStream;
     public Decoder menuMusicPlayer = new Decoder();
+    private final Thread musicThread;
 
     public LoginForm(final LauncherFrame launcherFrame) {
         loginPanelConstraints = new GridBagConstraints();
@@ -102,7 +103,7 @@ public class LoginForm extends Panel {
                 GameUpdater.force = true;
             launcher.login(LoginForm.this.userName.getText(), LoginForm.this.password.getText());
         });
-        Thread t = new Thread() {
+        musicThread = new Thread() {
             @Override
             public void run() {
                 try {
@@ -110,7 +111,10 @@ public class LoginForm extends Panel {
                 } catch (IOException e) {}
             }
         };
-        t.start();
+    }
+    
+    protected void startMusicThread() {
+        musicThread.start();
     }
 
     private void readUsername() {

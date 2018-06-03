@@ -169,7 +169,7 @@ public class MinecraftResourceDownloader {
             } else {
                 System.out.println("SHA1 "+resource.getName()+" calc:"+calcSHA1(localFile)+" prov:"+resource.getHash());
             }
-        } catch (Exception e) {
+        } catch (Exception ex) {
             // The hash could not be checked, so force update.
         }
 

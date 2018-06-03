@@ -115,8 +115,8 @@ public class Util {
                 final PermissionCollection defaultPolicy = (PermissionCollection) policyField.get(null);
             
                 // Clear existing (restricted) policy
-                final Field permsField = Class.forName("javax.crypto.CryptoPermissions").getDeclaredField("perms");;
-                final Field instanceField = Class.forName("javax.crypto.CryptoAllPermission").getDeclaredField("INSTANCE");;
+                final Field permsField = Class.forName("javax.crypto.CryptoPermissions").getDeclaredField("perms");
+                final Field instanceField = Class.forName("javax.crypto.CryptoAllPermission").getDeclaredField("INSTANCE");
                 permsField.setAccessible(true);
                 ((Map<?, ?>) permsField.get(defaultPolicy)).clear();
                 
@@ -158,7 +158,7 @@ public class Util {
             wr.close();
             InputStream is = connection.getInputStream();
             BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-            StringBuffer response = new StringBuffer();
+            StringBuilder response = new StringBuilder();
             String line;
             while ((line = rd.readLine()) != null) {
                 response.append(line);
