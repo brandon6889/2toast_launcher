@@ -37,7 +37,7 @@ public class Launcher extends Applet implements Runnable, AppletStub {
         this.active = false;
         this.context = 0;
         
-        stdOpts.add("-Xincgc");
+        stdOpts.add("-XX:+UseConcMarkSweepGC");
         stdOpts.add("-XX:-UseAdaptiveSizePolicy");
         stdOpts.add("-XX:-OmitStackTraceInFastThrow");
         stdOpts.add("-Xms128m");
