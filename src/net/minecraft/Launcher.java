@@ -9,7 +9,10 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.VolatileImage;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +23,8 @@ import javax.imageio.ImageIO;
 
 public class Launcher extends Applet implements Runnable, AppletStub {
     private static final long serialVersionUID = 1L;
+    private static final String SYSTEM_ENCODING = System.getProperty("sun.jnu.encoding", Charset.defaultCharset().name());
+    private static final Charset SYSTEM_CHARSET = Charset.forName(SYSTEM_ENCODING);
     public Map<String, String> customParameters;
     private GameUpdater gameUpdater;
     private boolean gameUpdaterStarted;
@@ -124,14 +129,40 @@ public class Launcher extends Applet implements Runnable, AppletStub {
                         System.out.println();*/
                         System.out.println("Executing game..");
                         ProcessBuilder pb = new ProcessBuilder(launchCommand);
-                        pb.inheritIO();
+                        pb.directory(Util.getWorkingDirectory());
+                        pb.environment().put("APPDATA", Util.getWorkingDirectory().getAbsoluteFile().getParent());
+                        //pb.inheritIO();
+                        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
                         try {
                             Process p = pb.start();
                             if (p == null)
                                 throw new Exception("Failed to start game.");
                             else {
-                                Thread.sleep(500L);
-                                System.exit(0);
+                                new Thread(() -> {
+                                    System.out.println("Starting monitor thread.");
+                                    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(p.getInputStream(), SYSTEM_CHARSET))) {
+                                        String line;
+                                        while ((line = bufferedReader.readLine()) != null) {
+                                            System.out.println(line);
+                                            if (Thread.currentThread().isInterrupted()) {
+                                                Thread.currentThread().interrupt();
+                                                System.exit(0);
+                                                //break;
+                                            }
+                                            
+                                            if (line.contains("LWJGL Version: ")) {
+                                                System.out.println("Game started, closing launcher.");
+                                                //Thread.sleep(500L);
+                                                System.exit(0);
+                                            }
+                                        }
+                                    }
+                                    catch (IOException ex) {
+                                        System.err.println("HERP: " + ex);
+                                    }
+                                }).start();
+                                //Thread.sleep(500L);
+                                //System.exit(0);
                             }
                         } catch (Exception e) {e.printStackTrace();}
                         /* LEGACY LAUNCH
