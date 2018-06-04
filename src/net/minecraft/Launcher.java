@@ -152,6 +152,7 @@ public class Launcher extends Applet implements Runnable, AppletStub {
                                             
                                             if (line.contains("LWJGL Version: ")) {
                                                 System.out.println("Game started, closing launcher.");
+                                                pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
                                                 //Thread.sleep(500L);
                                                 System.exit(0);
                                             }
