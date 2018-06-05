@@ -173,7 +173,7 @@ public class Decoder {
         Bitstream stream = new Bitstream(in);
         SourceDataLine line = null;
         int error = 0;
-        for (int frame = 0; !stop && frame < frameCount; frame++) {
+        for (int frame = 0; !stop && frame < frameCount && !Thread.currentThread().isInterrupted(); frame++) {
             if (pause) {
                 line.stop();
                 while (pause && !stop) {
