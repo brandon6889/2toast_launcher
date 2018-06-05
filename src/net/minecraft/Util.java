@@ -48,7 +48,7 @@ public class Util {
             workingDirectory = new File(userHome, '.' + applicationName + '/');
             break;
         case windows:
-            String applicationData = System.getenv("APPDATA");
+            String applicationData = System.getenv("LOCALAPPDATA");
             if (applicationData != null) {
                 workingDirectory = new File(applicationData, "." + applicationName + '/');
             } else {
