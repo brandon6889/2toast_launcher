@@ -141,6 +141,7 @@ public class LauncherFrame extends Frame {
                 return;
             }
             System.out.println("Logged in as " + values[2]);
+            //this.loginForm.stopMusicThread();
             this.launcher = new Launcher();
             this.launcher.customParameters.put("userName", values[2].trim());
             this.launcher.customParameters.put("latestVersion", values[0].trim());

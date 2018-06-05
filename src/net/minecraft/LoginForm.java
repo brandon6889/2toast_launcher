@@ -116,6 +116,10 @@ public class LoginForm extends Panel {
     protected void startMusicThread() {
         musicThread.start();
     }
+    
+    protected void stopMusicThread() {
+        musicThread.interrupt();
+    }
 
     private void readUsername() {
         try {

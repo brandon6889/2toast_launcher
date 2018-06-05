@@ -12,19 +12,17 @@ import java.awt.image.VolatileImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
-public class Launcher extends Applet implements Runnable, AppletStub {
+public class Launcher extends Applet implements Runnable, AppletStub, Consumer<String> {
     private static final long serialVersionUID = 1L;
-    private static final String SYSTEM_ENCODING = System.getProperty("sun.jnu.encoding", Charset.defaultCharset().name());
-    private static final Charset SYSTEM_CHARSET = Charset.forName(SYSTEM_ENCODING);
     public Map<String, String> customParameters;
     private GameUpdater gameUpdater;
     private boolean gameUpdaterStarted;
@@ -131,66 +129,16 @@ public class Launcher extends Applet implements Runnable, AppletStub {
                         ProcessBuilder pb = new ProcessBuilder(launchCommand);
                         pb.directory(Util.getWorkingDirectory());
                         pb.environment().put("APPDATA", Util.getWorkingDirectory().getAbsoluteFile().getParent());
-                        //pb.inheritIO();
                         pb.redirectError(ProcessBuilder.Redirect.INHERIT);
                         try {
                             Process p = pb.start();
                             if (p == null)
                                 throw new Exception("Failed to start game.");
                             else {
-                                new Thread(() -> {
-                                    System.out.println("Starting monitor thread.");
-                                    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(p.getInputStream(), SYSTEM_CHARSET))) {
-                                        String line;
-                                        while ((line = bufferedReader.readLine()) != null) {
-                                            System.out.println(line);
-                                            if (Thread.currentThread().isInterrupted()) {
-                                                Thread.currentThread().interrupt();
-                                                System.exit(0);
-                                                //break;
-                                            }
-                                            
-                                            if (line.contains("LWJGL Version: ")) {
-                                                System.out.println("Game started, closing launcher.");
-                                                pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
-                                                //Thread.sleep(500L);
-                                                System.exit(0);
-                                            }
-                                        }
-                                    }
-                                    catch (IOException ex) {
-                                        System.err.println("HERP: " + ex);
-                                    }
-                                }).start();
-                                //Thread.sleep(500L);
-                                //System.exit(0);
+                                new Thread(new StreamHandler(p.getInputStream(),System.out,Launcher.this)).start();
                             }
                         } catch (Exception e) {e.printStackTrace();}
-                        /* LEGACY LAUNCH
-                        try {
-                        if (!Launcher.this.gameUpdater.fatalError) {
-                        Launcher.this.replace(Launcher.this.gameUpdater.createApplet());
-                        }
-                        } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                        } catch (InstantiationException e) {
-                        e.printStackTrace();
-                        } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                        }*/
                     } catch (Exception ex) {Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, null, ex);}
-                    /* LEGACY LAUNCH
-                    try {
-                        if (!Launcher.this.gameUpdater.fatalError) {
-                            Launcher.this.replace(Launcher.this.gameUpdater.createApplet());
-                        }
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (InstantiationException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }*/
                 }
             }
         };
@@ -319,5 +267,14 @@ public class Launcher extends Applet implements Runnable, AppletStub {
 
     @Override
     public void appletResize(int i, int j) {
+    }
+
+    @Override
+    public void accept(String line) {
+        if (this.isVisible() && line.contains("LWJGL Version: ")) {
+            System.out.println("Game started, closing launcher.");
+            System.exit(0);
+            //this.getParent().setVisible(false);
+        }
     }
 }
