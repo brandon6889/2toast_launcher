@@ -31,10 +31,9 @@ public class StreamHandler implements Runnable {
             String line;
             while ((line = br.readLine()) != null) {
                 outStream.println(line);
-                if (Thread.currentThread().isInterrupted()) {
-                    Thread.currentThread().interrupt();
+                
+                if (Thread.currentThread().isInterrupted())
                     break;
-                }
 
                 if (callback != null)
                     callback.accept(line);
