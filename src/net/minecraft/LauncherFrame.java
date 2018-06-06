@@ -29,7 +29,7 @@ import javax.imageio.ImageIO;
 
 import javax.swing.JOptionPane;
 
-public class LauncherFrame extends Frame {
+public class LauncherFrame {
     public static final int VERSION = 14;
     public static final String USERVERSION = "1.3";
     private static final long serialVersionUID = 1L;
@@ -37,7 +37,6 @@ public class LauncherFrame extends Frame {
     private LoginForm loginForm;
 
     public LauncherFrame(Frame frame, File workingDirectory, Proxy proxy, PasswordAuthentication proxyAuth, String[] args, Integer bullshit) {
-        super("2Toasty Minecraft Launcher");
         System.out.println();
         System.out.println("== 2Toasty Launcher v" + USERVERSION + " ==");
         System.out.println();
@@ -53,6 +52,8 @@ public class LauncherFrame extends Frame {
             System.exit(2);
             return;
         }
+        javafx.application.Application.launch(GuiApplication.class);
+        /*
         this.setBackground(new Color(0, 0, 0));
         this.loginForm = new LoginForm(this);
         this.setLayout(new BorderLayout());
@@ -97,6 +98,14 @@ public class LauncherFrame extends Frame {
         frame.dispose();
         
         this.loginForm.startMusicThread();
+        
+        new Thread() {
+            @Override
+            public void run() {
+                javafx.application.Application.launch(GuiApplication.class);
+            }
+        }.start();
+        */
     }
 
     public void playCached(String userName) {
@@ -107,12 +116,12 @@ public class LauncherFrame extends Frame {
             this.launcher = new Launcher();
             this.launcher.customParameters.put("userName", userName);
             this.launcher.init();
-            this.removeAll();
-            this.add(this.launcher, "Center");
+            //this.removeAll();
+            //this.add(this.launcher, "Center");
             this.launcher.start();
             this.loginForm = null;
-            this.setTitle("2Toasty Minecraft");
-            this.validate();
+            //this.setTitle("2Toasty Minecraft");
+            //this.validate();
         } catch (Exception e) {
             e.printStackTrace();
             showError(e.toString());
@@ -148,13 +157,13 @@ public class LauncherFrame extends Frame {
             this.launcher.customParameters.put("downloadTag", values[1].trim());
             this.launcher.customParameters.put("sessionId", values[3].trim());
             this.launcher.init();
-            this.removeAll();
-            this.add(this.launcher, "Center");
+            //this.removeAll();
+            //this.add(this.launcher, "Center");
             this.launcher.start();
             this.loginForm.loginOk();
             this.loginForm = null;
-            this.setTitle("2Toasty Minecraft");
-            this.validate();
+            //this.setTitle("2Toasty Minecraft");
+            //this.validate();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             showError(e.toString());
@@ -163,12 +172,10 @@ public class LauncherFrame extends Frame {
     }
 
     private void showError(String error) {
-        removeAll();
-        //frame.getContentPane().removeAll();
-        add(this.loginForm);
+        //removeAll();
+        //add(this.loginForm);
         this.loginForm.setError(error);
-        //frame.getContentPane().repaint();
-        validate();
+        //validate();
     }
 
     public static void main(String[] args) {
@@ -189,19 +196,7 @@ public class LauncherFrame extends Frame {
         }
         File workingDirectory = (File)optionSet.valueOf((OptionSpec)workDirOption);
         workingDirectory.mkdirs();
-        //JFrame frame = new JFrame();
-        //frame.setTitle("2Toast Minecraft Launcher");
-        //frame.setPreferredSize(new Dimension(900, 580));
-        
-        //try {
-        //    InputStream in = Launcher.class.getResourceAsStream("/favicon.png");
-        //    if(in != null) {
-        //        launcherFrame.setIconImage(ImageIO.read(in));
-        //    }
-        //} catch (IOException var13) {}
         
         LauncherFrame frame = new LauncherFrame(new Frame(), workingDirectory, proxy, (PasswordAuthentication)null, (String[])leftoverArgs.toArray(new String[leftoverArgs.size()]), 0);
-        frame.setLocationRelativeTo((Component)null);
-        frame.setVisible(true);
     }
 }
