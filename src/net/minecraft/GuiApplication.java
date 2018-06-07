@@ -44,7 +44,6 @@ public class GuiApplication extends Application {
         stage.show();
         
         String musicURL = getClass().getResource("music.mp3").toExternalForm();
-        System.out.println(musicURL);
         Media music = new Media(musicURL);
         try {
             MediaPlayer musicPlayer = new MediaPlayer(music);

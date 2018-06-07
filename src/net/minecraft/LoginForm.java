@@ -42,8 +42,6 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import javax.imageio.ImageIO;
 
-import org.mp3transform.Decoder;
-
 public class LoginForm extends Panel {
     private static final long serialVersionUID = 1L;
     private Image bgImage;
@@ -60,9 +58,6 @@ public class LoginForm extends Panel {
     private VolatileImage img;
     private final GridBagConstraints loginPanelConstraints;
     private LauncherFrame launcher;
-    private InputStream menuMusicInputStream;
-    public Decoder menuMusicPlayer = new Decoder();
-    private final Thread musicThread;
 
     public LoginForm(final LauncherFrame launcherFrame) {
         loginPanelConstraints = new GridBagConstraints();
@@ -87,7 +82,6 @@ public class LoginForm extends Panel {
         try {
             this.bgImage = ImageIO.read(LoginForm.class.getResource("bgimg.jpg"));
             this.toastLogo = ImageIO.read(LoginForm.class.getResource("logo.png"));
-            this.menuMusicInputStream = new BufferedInputStream(LoginForm.class.getResourceAsStream("music.mp3"), 2*1024*1024);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -103,22 +97,6 @@ public class LoginForm extends Panel {
                 GameUpdater.force = true;
             launcher.login(LoginForm.this.userName.getText(), LoginForm.this.password.getText());
         });
-        musicThread = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    LoginForm.this.menuMusicPlayer.play("menu music", LoginForm.this.menuMusicInputStream);
-                } catch (IOException e) {}
-            }
-        };
-    }
-    
-    protected void startMusicThread() {
-        musicThread.start();
-    }
-    
-    protected void stopMusicThread() {
-        musicThread.interrupt();
     }
 
     private void readUsername() {
