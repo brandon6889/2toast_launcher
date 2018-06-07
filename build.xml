@@ -20,6 +20,11 @@
     <javac target="1.8" source="1.8" srcdir="${src}" destdir="${build}" includeantruntime="false">
       <classpath path="libsrc"/>
     </javac>
+    <copy todir="${build}" >
+      <fileset dir="${src}">
+        <include name="**/*.css" />
+      </fileset>
+    </copy>   
   </target>
 
   <target name="obfuscate" depends="compile" description="Obfuscate class files">
