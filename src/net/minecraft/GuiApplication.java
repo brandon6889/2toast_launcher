@@ -7,6 +7,8 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -40,6 +42,18 @@ public class GuiApplication extends Application {
         stage.centerOnScreen(); // or setX and setY
         
         stage.show();
+        
+        String musicURL = getClass().getResource("music.mp3").toExternalForm();
+        System.out.println(musicURL);
+        Media music = new Media(musicURL);
+        try {
+            MediaPlayer musicPlayer = new MediaPlayer(music);
+            musicPlayer.play();
+        }
+        catch (RuntimeException ex) {
+            // Unable to play due to codec issue, probably on Linux.
+            System.out.println("Warning: Unable to play menu music.");
+        }
     }
     
 }
