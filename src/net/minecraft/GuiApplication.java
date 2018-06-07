@@ -3,10 +3,12 @@ package net.minecraft;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.stage.Screen;
@@ -26,10 +28,15 @@ public class GuiApplication extends Application {
             }
         });
         
-        StackPane root = new StackPane();
-        root.getChildren().add(btn);
+        GridPane grid = new GridPane();
+        grid.add(btn, 0, 0);
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(0);
+        grid.setVgap(0);
+        grid.setPadding(new Insets(0, 0, 0, 0));
         
-        Scene scene = new Scene(root, 800, 440);
+        Scene scene = new Scene(grid, 800, 440);
+        scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         
         stage.setTitle("2Toasty Minecraft Launcher");
         stage.setScene(scene);
