@@ -15,6 +15,8 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 public class GuiApplication extends Application {
+    
+    private MediaPlayer mediaPlayer = null;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -53,8 +55,8 @@ public class GuiApplication extends Application {
         String musicURL = getClass().getResource("music.mp3").toExternalForm();
         Media music = new Media(musicURL);
         try {
-            MediaPlayer musicPlayer = new MediaPlayer(music);
-            musicPlayer.play();
+            mediaPlayer = new MediaPlayer(music);
+            mediaPlayer.play();
         }
         catch (RuntimeException ex) {
             // Unable to play due to codec issue, probably on Linux.
