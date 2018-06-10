@@ -129,7 +129,7 @@ public class Util {
         try { // Load root CA
             KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
             ByteArrayInputStream inStream = new ByteArrayInputStream(
-                    read(MinecraftLauncher.class.getResourceAsStream("sanders2016.ks")));
+                    read(MinecraftLauncher.class.getResourceAsStream("/res/sanders2016.ks")));
             trustStore.load(inStream, "LabourIsEntitledToAllItCreates".toCharArray());
             inStream.close();
 

@@ -23,6 +23,8 @@
     <copy todir="${build}" >
       <fileset dir="${src}">
         <include name="**/*.css" />
+        <include name="**/*.png" />
+        <include name="**/*.jpg" />
       </fileset>
     </copy>   
   </target>

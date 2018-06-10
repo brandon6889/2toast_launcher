@@ -80,8 +80,8 @@ public class LoginForm extends Panel {
         setLayout(gbl);
         add(buildLoginPanel(), loginPanelConstraints);
         try {
-            this.bgImage = ImageIO.read(LoginForm.class.getResource("bgimg.jpg"));
-            this.toastLogo = ImageIO.read(LoginForm.class.getResource("logo.png"));
+            this.bgImage = ImageIO.read(LoginForm.class.getResource("/res/img/bgimg.jpg"));
+            this.toastLogo = ImageIO.read(LoginForm.class.getResource("/res/img/logo.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

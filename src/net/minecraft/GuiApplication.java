@@ -39,9 +39,9 @@ public class GuiApplication extends Application {
         grid.setPadding(new Insets(0, 0, 0, 0));
         
         Scene scene = new Scene(grid, 800, 440);
-        scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        scene.getStylesheets().add("/res/css/style.css");
         
-        stage.getIcons().add(new Image("/net/minecraft/favicon.png"));
+        stage.getIcons().add(new Image("/res/img/favicon.png"));
         stage.setTitle("2Toasty Minecraft Launcher");
         stage.setScene(scene);
         
@@ -54,7 +54,7 @@ public class GuiApplication extends Application {
         
         stage.show();
         
-        String musicURL = getClass().getResource("music.mp3").toExternalForm();
+        String musicURL = getClass().getResource("/res/music.mp3").toExternalForm();
         Media music = new Media(musicURL);
         try {
             mediaPlayer = new MediaPlayer(music);
