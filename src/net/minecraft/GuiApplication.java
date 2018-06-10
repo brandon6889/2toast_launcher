@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -40,6 +41,7 @@ public class GuiApplication extends Application {
         Scene scene = new Scene(grid, 800, 440);
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         
+        stage.getIcons().add(new Image("/net/minecraft/favicon.png"));
         stage.setTitle("2Toasty Minecraft Launcher");
         stage.setScene(scene);
         
