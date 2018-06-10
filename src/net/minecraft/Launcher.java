@@ -117,12 +117,12 @@ public class Launcher extends Applet implements Runnable, AppletStub, Consumer<S
                         launchCommand.add(Launcher.this.gameUpdater.getMainClass());
                         String username = Launcher.this.customParameters.get("username");
                         String token = Launcher.this.customParameters.get("sessionid");
-                        for (String s : Launcher.this.gameUpdater.getLaunchArgs(username, token).split(" "))
+                        for (String s : Launcher.this.gameUpdater.getLaunchArgs(username, token))
                             launchCommand.add(s);
                         launchCommand.add("--height 480 --width 854");
                         /*System.out.print("COMMAND: ");
                         for (String s : launchCommand) {
-                        System.out.print(s + " ");
+                        System.out.println(s);
                         }
                         System.out.println();*/
                         System.out.println("Executing game..");
