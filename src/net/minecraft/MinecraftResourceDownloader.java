@@ -208,16 +208,13 @@ public class MinecraftResourceDownloader {
                     throw new Exception("Failed to download " + resource.getName() + " from " + urlconnection.toString() + ": got " + downloadedAmount + " bytes, expected " + fileSize);
                 }
             }
-            /*synchronized (mLockProgress) {
-                mDownloadedSize += fileSize;
-            }*/
-            synchronized (mLockQueue) {
-                mInProgress.remove(resource);
-                this.download();
-            }
-            synchronized (mCaller) {
-                mCaller.notify();
-            }
+        }
+        synchronized (mLockQueue) {
+            mInProgress.remove(resource);
+            this.download();
+        }
+        synchronized (mCaller) {
+            mCaller.notify();
         }
     }
     
