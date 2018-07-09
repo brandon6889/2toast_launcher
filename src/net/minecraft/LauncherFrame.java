@@ -1,16 +1,8 @@
 package net.minecraft;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
+//Bootstrapper expects to pass in a Frame
+//Need to keep Frame for legacy reasons
 import java.awt.Frame;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.IOException;
-import java.net.URLEncoder;
 
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.NonOptionArgumentSpec;
@@ -19,13 +11,10 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.util.List;
-
-import javax.imageio.ImageIO;
 
 import javax.swing.JOptionPane;
 
@@ -33,11 +22,12 @@ public class LauncherFrame {
     public static final int VERSION = 14;
     public static final String USERVERSION = "1.3";
     private static final long serialVersionUID = 1L;
-    private Launcher launcher;
-
+    
+    //Bootstrapper expects to pass in a Frame
+    //Need to keep Frame for legacy reasons
     public LauncherFrame(Frame frame, File workingDirectory, Proxy proxy, PasswordAuthentication proxyAuth, String[] args, Integer bullshit) {
         System.out.println();
-        System.out.println("== 2Toasty Launcher v" + USERVERSION + " ==");
+        System.out.println("== Kuumba Launcher v" + USERVERSION + " ==");
         System.out.println();
         System.out.println("Java Runtime: "+System.getProperty("java.runtime.name"));
         System.out.println("Java Version: "+System.getProperty("java.vm.name")+" "+System.getProperty("java.version")+" " +System.getProperty("sun.arch.data.model")+" ("+System.getProperty("java.specification.version")+")");

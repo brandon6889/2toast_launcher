@@ -24,6 +24,7 @@ import javafx.scene.text.Text;
 import javafx.animation.Animation;
 import javafx.animation.Transition;
 import javafx.animation.PathTransition;
+import javafx.animation.FadeTransition;
 import javafx.util.Duration;
 
 import java.io.BufferedInputStream;
@@ -51,49 +52,44 @@ import javax.imageio.ImageIO;
  * @author Frank
  */
 public class LoginPane extends AnchorPane {
+    protected final FadeTransition fadeTransition;
     protected final PathTransition logonPathTransition;
     protected final PathTransition logonFailedPathTransition;
     protected final Path logonPath;
     protected final Path logonFailedPath;
-    protected final ImageView imageView;
     protected final AnchorPane rectPane;
     protected final Rectangle loginBackground;
     protected final TextField usernameField;
     protected final PasswordField passwordField;
     protected final Button logonButton;
-    protected final Text text;
-    protected final Button testButton;
+    protected final Text logonStatus;
     protected final CheckBox rememberBox;
     protected final CheckBox updateBox;
-    protected Boolean logonSuccess;
-    
+    protected final ImageView loginSymbol;
+    protected String logonSuccess;
     protected GuiApplication parentApp;
     
     
     
     public LoginPane(GuiApplication mainApp) {
 
-        imageView = new ImageView();
         loginBackground = new Rectangle();
         usernameField = new TextField();
         passwordField = new PasswordField();
         logonButton = new Button();
-        text = new Text();
+        logonStatus = new Text();
         logonPathTransition = new PathTransition();
         logonFailedPathTransition = new PathTransition();
+        fadeTransition = new FadeTransition();
         logonPath = new Path();
         logonFailedPath = new Path();
         rectPane = new AnchorPane();
         rememberBox = new CheckBox();
         updateBox = new CheckBox();
         parentApp = mainApp;
-        
-        logonSuccess = false;
+        logonSuccess = "";
+        loginSymbol = new ImageView();
 
-        
-        testButton = new Button();
-        AnchorPane.setRightAnchor(testButton, 50.0);
-        
         setMaxHeight(USE_PREF_SIZE);
         setMaxWidth(USE_PREF_SIZE);
         setMinHeight(USE_PREF_SIZE);
@@ -101,14 +97,6 @@ public class LoginPane extends AnchorPane {
         AnchorPane.setBottomAnchor(this, 0.0);
         AnchorPane.setLeftAnchor(this, 0.0);
         AnchorPane.setRightAnchor(this, 0.0);
-
-/*       imageView.setFitHeight(400.0);
-        imageView.setFitWidth(600.0);
-        imageView.setLayoutX(0);
-        imageView.setPickOnBounds(true);
-        imageView.setPreserveRatio(false);
-        imageView.setImage(new Image(getClass().getResource("/res/img/minecraft-beautiful-landscape-best-decorating-7.jpg").toExternalForm()));
-*/
 
         rectPane.setMaxHeight(USE_PREF_SIZE);
         rectPane.setMaxWidth(USE_PREF_SIZE);
@@ -126,7 +114,6 @@ public class LoginPane extends AnchorPane {
         loginBackground.setLayoutY(0.0);
         loginBackground.setStroke(javafx.scene.paint.Color.TRANSPARENT);
         loginBackground.setStrokeType(javafx.scene.shape.StrokeType.INSIDE);
-        //loginBackground.setWidth(600.0);
         loginBackground.widthProperty().bind(rectPane.widthProperty());
         loginBackground.setFill(javafx.scene.paint.LinearGradient.valueOf("from 0% 0% to 0% 100%, black 100%, rgba(255,0,0,0) 0%"));
         AnchorPane.setBottomAnchor(loginBackground, 0.0);
@@ -157,29 +144,36 @@ public class LoginPane extends AnchorPane {
         updateBox.setTextFill(javafx.scene.paint.Color.WHITE);
         AnchorPane.setBottomAnchor(updateBox, 10.0);
         AnchorPane.setRightAnchor(updateBox, 305.0);
-        
-        
-        text.setFill(javafx.scene.paint.Color.WHITE);
-        text.setStrokeType(javafx.scene.shape.StrokeType.OUTSIDE);
-        text.setStrokeWidth(0.0);
-        text.setText("<login status goes here>");
-        text.setWrappingWidth(267.13671875);
-        text.setFont(new Font("Segoe UI", 12.0));
-        AnchorPane.setLeftAnchor(text, 100.0);
-        AnchorPane.setBottomAnchor(text, 75.0);
+                
+        logonStatus.setFill(javafx.scene.paint.Color.WHITE);
+        logonStatus.setStrokeType(javafx.scene.shape.StrokeType.OUTSIDE);
+        logonStatus.setStrokeWidth(0.0);
+        logonStatus.setText("");
+        logonStatus.wrappingWidthProperty().bind(rectPane.widthProperty().subtract(400.0));
+        logonStatus.setFont(new Font("Segoe UI", 16.0));
+        AnchorPane.setTopAnchor(logonStatus, 20.0);
+        AnchorPane.setLeftAnchor(logonStatus, 25.0);
 
-
-//      getChildren().add(imageView);
+        loginSymbol.setFitHeight(30.0);
+        loginSymbol.setFitWidth(30.0);
+        loginSymbol.setPreserveRatio(true);
+        loginSymbol.setImage(new Image(getClass().getResource("/res/img/loading-transp3.gif").toExternalForm()));
+        loginSymbol.setOpacity(0.0);
+        AnchorPane.setBottomAnchor(loginSymbol,80.0);
+        AnchorPane.setRightAnchor(loginSymbol,30.0);
+        getChildren().add(loginSymbol);
+        fadeTransition.setNode(loginSymbol);
+        fadeTransition.setDuration(Duration.millis(150));        
+        
         rectPane.getChildren().add(loginBackground);
         rectPane.getChildren().add(usernameField);
         rectPane.getChildren().add(passwordField);
         rectPane.getChildren().add(logonButton);
-        rectPane.getChildren().add(text);
+        rectPane.getChildren().add(logonStatus);
         rectPane.getChildren().add(rememberBox);
         rectPane.getChildren().add(updateBox);
-       // rectPane.getChildren().add(imageView0);
+        // rectPane.getChildren().add(imageView0);
         getChildren().add(rectPane);
-        getChildren().add(testButton);
         
         logonPathTransition.setDuration(Duration.millis(500));
         logonPathTransition.setNode(rectPane);
@@ -198,7 +192,12 @@ public class LoginPane extends AnchorPane {
         logonButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                text.setText("logging in...");
+                GameUpdater.force = updateBox.isSelected();
+                fadeTransition.setFromValue(loginSymbol.getOpacity());
+                fadeTransition.setToValue(1.0);
+                fadeTransition.play();
+                
+                logonStatus.setText("Logging in to Kuumba.club ...");
                 logonPath.getElements().clear();
                 logonPath.getElements().add(new MoveTo(rectPane.getWidth()*0.5,50f));
                 logonPath.getElements().add(new LineTo(rectPane.getWidth()*0.5,150f));
@@ -208,9 +207,12 @@ public class LoginPane extends AnchorPane {
                     
                     @Override
                     public void handle(ActionEvent event){
+                        fadeTransition.setFromValue(loginSymbol.getOpacity());
+                        fadeTransition.setToValue(0.0);
+                        fadeTransition.play();
+                        
                         logonSuccess = parentApp.login(usernameField.getText(),passwordField.getText());
-                        if(logonSuccess){
-                            System.out.println("login good!");
+                        if(logonSuccess == "success"){
                             loginOk();
                         }
                         else{
@@ -221,14 +223,9 @@ public class LoginPane extends AnchorPane {
             }
         });
         
-        testButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                loginBad();               
-            }
-        });
-        
         readUsername(); // (from file)
+        
+        //TODO: Implement auto login, if applicable
         //checkAutoLogin();
         
     }
@@ -284,7 +281,7 @@ public class LoginPane extends AnchorPane {
     }
     
     public void loginBad(){
-        text.setText("login failed");
+        logonStatus.setText(logonSuccess);
         logonFailedPath.getElements().clear();
         logonFailedPath.getElements().add(new MoveTo(rectPane.getWidth()*0.5,200f));
         logonFailedPath.getElements().add(new LineTo(rectPane.getWidth()*0.5,50f));
@@ -295,13 +292,6 @@ public class LoginPane extends AnchorPane {
         writeUsername();
         parentApp.continueWithStuff();
     }
-/*
-    public void setNoNetwork() {
-        this.removeAll();
-        this.add(buildOfflinePanel());
-        this.validate();
-    }
-*/
     
     public void checkAutologin() {
         if (passwordField.getText().length() > 0) {

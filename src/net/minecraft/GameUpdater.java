@@ -31,7 +31,7 @@ public class GameUpdater implements Runnable {
     protected String fatalErrorDescription;
 
     private final String latestVersion;
-    protected static final String SERVER_URL = "http://2toast.net/minecraft/";
+    protected static final String SERVER_URL = "http://kuumba.club/minecraft/";
     
     private static GameUpdater INSTANCE;
     

@@ -33,63 +33,39 @@ import java.net.URLEncoder;
 public class GuiApplication extends Application {
     
     private MediaPlayer mediaPlayer = null;
-    LoginPane loginPane;
-    LauncherPane launcherPane;
-    Scene rootScene;
-    AnchorPane rootPane;
+    
+    protected LoginPane loginPane;
+    protected LauncherPane launcherPane;
+    protected Scene rootScene;
+    protected AnchorPane rootPane;
     
     @Override
     public void start(Stage stage) throws Exception {
-        Button btn = new Button();
-        btn.setText("Say 'Hello World'");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
-            
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("Hello World!");
-            }
-        });
         
-        /*
-        GridPane grid = new GridPane();
-        grid.add(btn, 0, 0);
-        grid.setAlignment(Pos.CENTER);
-        grid.setHgap(0);
-        grid.setVgap(0);
-        grid.setPadding(new Insets(0, 0, 0, 0));
-        */
-        
-         
+        //Define Root AnchorPane and Scene
         rootPane = new AnchorPane();
         rootScene = new Scene(rootPane, 800, 440);
         
-        //Crappy Imageview
+        //Crappy Background Imageview
+        //TODO: Make this preserve ratio, but also fully fill window
+        //TODO 2: stop using a shitty image for the background
         ImageView imageView = new ImageView();
         imageView.setPreserveRatio(false);
         imageView.fitWidthProperty().bind(rootScene.widthProperty());
         imageView.fitHeightProperty().bind(rootScene.heightProperty());
         imageView.setImage(new Image(getClass().getResource("/res/img/minecraft-beautiful-landscape-best-decorating-7.jpg").toExternalForm()));
         rootPane.getChildren().add(imageView);
-        //want to preserve ratio
         
+        //Instantiate LoginPane to interact with user:
         LoginPane loginPane = new LoginPane(this);
         rootPane.getChildren().add(loginPane);
         
-        rootScene.getStylesheets().add("/res/css/style.css");
-        
         stage.getIcons().add(new Image("/res/img/favicon.png"));
-        stage.setTitle("2Toasty Minecraft Launcher");
+        stage.setTitle("Kuumba Minecraft Launcher");
         stage.setScene(rootScene);
-        
-        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
-        int startWidth = Math.max((int)(primaryScreenBounds.getWidth()*0.5), 800);
-        int startHeight = Math.max((int)(primaryScreenBounds.getHeight()*0.5), 440);
-        stage.setWidth(startWidth);
-        stage.setHeight(startHeight);
-        stage.centerOnScreen(); // or setX and setY
-                
         stage.show();
         
+        //TODO: Make Friendlier mediaplayer
         /*String musicURL = getClass().getResource("/res/music.mp3").toExternalForm();
         Media music = new Media(musicURL);
         try {
@@ -102,67 +78,50 @@ public class GuiApplication extends Application {
         }*/
     }
     
-    //returns true if successful
-    protected boolean login(String username, String password){    
+    //Returns "success" if successful, otherwise returns error message
+    //allows LoginPane to react to login success/failure
+    //GuiApplication handles logging in
+    protected String login(String username, String password){    
         try {
             String parameters = "user=" + URLEncoder.encode(username, "UTF-8") + "&pass=" + URLEncoder.encode(password, "UTF-8") + "&version=" + 14;
-            String result = Util.executePost("https://yimbot.net/minecraft/login.php", parameters);
-            //Can't connect to 2toast:
+            String result = Util.executePost("https://kuumba.club/minecraft/login.php", parameters);
+            
+            //ERROR 1: Can't connect to Kuumba:
             if (result == null) {
-                System.out.println("Can't connect to 2toast.net.");
-                //this.loginForm.setNoNetwork();
-                return false;
+                return "Can't connect to kuumba.club.";
             }
             
-            //Improper Response or failed logon
+            //ERROR 2: Improper Response or failed logon
             if (!result.contains(":")) {
-                System.out.println(result);
-                //this.loginForm.setNoNetwork();
-                return false;
+                return "Logon Failed or Improper response received:\n"+result;
             }
 
             String[] values = result.split(":");
-            //Need to post in forum introduction
+            
+            //ERROR 3: Need to post in forum introduction
             if (values.length <3 /*padma*/+2) {
-                System.out.println(result);
-                //this.loginForm.setNoNetwork();
-                return false;
+                return "Authenticated, but you need to post on the forum!";
             }
+            
             System.out.println("Logged in as " + values[2]);
             
-            //this.loginForm.stopMusicThread();
-            
+            //this.loginForm.stopMusicThread();           
             
             LauncherPane launcherPane = new LauncherPane(this,values);      
             rootPane.getChildren().add(launcherPane);
-            
-            
-            /*            
-            this.launcher.customParameters.put("username", values[2].trim());
-            this.launcher.customParameters.put("latestVersion", values[0].trim());
-            this.launcher.customParameters.put("downloadTag", values[1].trim());
-            this.launcher.customParameters.put("sessionId", values[3].trim());
-            this.launcher.init();
-            */
-            
-            //this.removeAll();
-            //this.add(this.launcher, "Center");
-            //this.launcher.start();
-            return true;
-            //this.loginForm = null;
-            //this.setTitle("2Toasty Minecraft");
-            //this.validate();
+
+            return "success";
+
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             System.out.println(e.toString());
-            return false;
-            //this.loginForm.setNoNetwork();
+            return e.toString();
         }        
     }
     
     protected void continueWithStuff(){
-       System.out.println("closing screen...");
-       System.out.println("closed!");
+        //TODO: Do things if login successful
+        //i.e. remove loginPane
     }
     
 }

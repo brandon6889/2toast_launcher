@@ -124,7 +124,7 @@ public class MinecraftVersion implements MinecraftResource {
                     break;
                 case "${version_name}":
                     if (!isLegacy())
-                        launchArgs.add("2Toasty");
+                        launchArgs.add("Kuumba");
                     break;
                 case "${version_type}":
                     if (!isLegacy())
