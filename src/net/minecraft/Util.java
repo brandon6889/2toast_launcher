@@ -34,7 +34,7 @@ public class Util {
 
     protected static File getWorkingDirectory() {
         if (workDir == null) {
-            workDir = getWorkingDirectory("minecraft2toast");
+            workDir = getWorkingDirectory("minecraftKuumba");
         }
         return workDir;
     }
