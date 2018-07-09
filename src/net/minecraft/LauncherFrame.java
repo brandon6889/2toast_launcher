@@ -131,7 +131,7 @@ public class LauncherFrame {
     public void login(String userName, String password) {
         try {
             String parameters = "user=" + URLEncoder.encode(userName, "UTF-8") + "&pass=" + URLEncoder.encode(password, "UTF-8") + "&version=" + 14;
-            String result = Util.executePost("https://auth.2toast.net/minecraft/login.php", parameters);
+            String result = Util.executePost("https://yimbot.net/minecraft/login.php", parameters);
             if (result == null) {
                 showError("Can't connect to 2toast.net.");
                 this.loginForm.setNoNetwork();
