@@ -28,6 +28,10 @@ import javafx.scene.text.Text;
 import javafx.animation.Animation;
 import javafx.animation.Transition;
 import javafx.animation.PathTransition;
+import javafx.animation.FadeTransition;
+import javafx.animation.RotateTransition;
+import javafx.animation.Timeline;
+import javafx.animation.Interpolator;
 import javafx.util.Duration;
 
 import java.io.BufferedReader;
@@ -52,7 +56,9 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
     protected VBox progBox;
     protected Text downloadAction;
     protected ProgressBar downloadProgress;
-    
+    protected FadeTransition fadeTransition;
+    protected ImageView launchingIcon;
+    protected RotateTransition rotate360Transition;
     
     private static final long serialVersionUID = 1L;
     public Map<String, String> customParameters;
@@ -65,13 +71,15 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
     
     
     public LauncherPane(GuiApplication mainApp, String[] params){
+        setOpacity(0.0);
+        
         parentApp = mainApp;
         username = params[2].trim();
         latestVersion = params[0].trim();
         downloadTag = params[1].trim();
         sessionId = params[3].trim();
         
-        progBox = new VBox();
+        progBox = new VBox();        
         
         downloadAction = new Text();
         downloadAction.setText("Not downloading.");
@@ -80,18 +88,43 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
         downloadProgress = new ProgressBar();
         downloadProgress.setProgress(0.0);
         
+        launchingIcon = new ImageView();
+        launchingIcon.setFitWidth(80.0);
+        launchingIcon.setPreserveRatio(true);
+        launchingIcon.setImage(new Image(getClass().getResource("/res/img/loading-transp4.gif").toExternalForm()));
+        launchingIcon.setOpacity(0.0);
         
-        //AnchorPane.setBottomAnchor(this, 50.0);
-        AnchorPane.setTopAnchor(this, 50.0);
-        AnchorPane.setLeftAnchor(this, 50.0);
-        AnchorPane.setRightAnchor(this, 50.0);
-        AnchorPane.setBottomAnchor(this, 50.0);
+        rotate360Transition = new RotateTransition(Duration.millis(6000), launchingIcon);
+        rotate360Transition.setByAngle(360.0);
+        rotate360Transition.setCycleCount(Timeline.INDEFINITE);
+        rotate360Transition.setInterpolator(Interpolator.LINEAR);
+        rotate360Transition.play();
 
-        this.setCenter(progBox);
+
+        //show border
+        this.setStyle("-fx-border-color: black");
+        
+        AnchorPane.setTopAnchor(this, 25.0);
+        AnchorPane.setLeftAnchor(this, 25.0);
+        AnchorPane.setRightAnchor(this, 25.0);
+        AnchorPane.setBottomAnchor(this, 25.0);
         
         progBox.getChildren().add(downloadAction);
         progBox.getChildren().add(downloadProgress);
-
+        progBox.getChildren().add(new Rectangle(20,20,javafx.scene.paint.Color.grayRgb(255,0.0)));
+        progBox.getChildren().add(launchingIcon);
+        
+        this.setCenter(progBox);
+        progBox.setAlignment(Pos.CENTER);
+        
+        fadeTransition = new FadeTransition();
+        fadeTransition.setFromValue(0.0);
+        fadeTransition.setToValue(1.0);
+        fadeTransition.setNode(this);
+        fadeTransition.setDuration(Duration.millis(350));
+        fadeTransition.play();
+        
+        //Start The Download!
         this.gameUpdaterStarted = false;
         this.active = false;
         this.context = 0;
@@ -117,7 +150,6 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
             @Override
             public void run() {
                 gameUpdater.run();
-                System.out.println("done downloading!");
                 if (!gameUpdater.fatalError) { // Needs more testing... prints Executing game?
                     try {
                         List<String> launchCommand = new ArrayList();
@@ -160,7 +192,18 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
             @Override
             public void run() {
                 while (true) {
-                    downloadProgress.setProgress(gameUpdater.percentage*0.001);
+                    if(gameUpdater.percentage < 1000){
+                        downloadAction.setText(gameUpdater.getDescriptionForState());
+                        downloadProgress.setProgress(gameUpdater.percentage*0.001);
+                    }
+                    else{
+                        downloadAction.setText("Launching game...");
+                        downloadProgress.setProgress(1.0);
+                        fadeTransition.setNode(launchingIcon);
+                        fadeTransition.setDuration(Duration.millis(500));
+                        fadeTransition.play();
+                        return;
+                    }
                     try {
                         Thread.sleep(10L);
                     } catch (InterruptedException e) {

@@ -126,7 +126,7 @@ public class MinecraftLibrary implements MinecraftResource {
             Certificate[] certificate = MinecraftLibrary.class.getProtectionDomain().getCodeSource().getCertificates();
             if (certificate == null) {
                 URL location = MinecraftLibrary.class.getProtectionDomain().getCodeSource().getLocation();
-                JarURLConnection jurl = (JarURLConnection) new URL("jar:" + location.toString() + "/net/minecraft/MinecraftLibrary.class").openConnection();
+                JarURLConnection jurl = (JarURLConnection) new URL("jar:" + location.toString() + "!/net/minecraft/MinecraftLibrary.class").openConnection();
                 jurl.setDefaultUseCaches(true);
                 try {
                     certificate = jurl.getCertificates();

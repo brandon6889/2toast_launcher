@@ -44,8 +44,8 @@ public class GuiApplication extends Application {
         
         //Define Root AnchorPane and Scene
         rootPane = new AnchorPane();
-        rootScene = new Scene(rootPane, 800, 440);
-        
+        rootScene = new Scene(rootPane, 800, 550);
+                
         //Crappy Background Imageview
         //TODO: Make this preserve ratio, but also fully fill window
         //TODO 2: stop using a shitty image for the background
@@ -60,6 +60,8 @@ public class GuiApplication extends Application {
         LoginPane loginPane = new LoginPane(this);
         rootPane.getChildren().add(loginPane);
         
+        stage.setMinWidth(550.0);
+        stage.setMinHeight(200.0);
         stage.getIcons().add(new Image("/res/img/favicon.png"));
         stage.setTitle("Kuumba Minecraft Launcher");
         stage.setScene(rootScene);
