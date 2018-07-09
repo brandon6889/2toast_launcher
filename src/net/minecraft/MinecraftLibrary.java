@@ -123,10 +123,10 @@ public class MinecraftLibrary implements MinecraftResource {
      */
     protected void extract(String rootPath, String nativePath) throws IOException, Exception {
         if (natives != null) {
-            Certificate[] certificate = Launcher.class.getProtectionDomain().getCodeSource().getCertificates();
+            Certificate[] certificate = MinecraftLibrary.class.getProtectionDomain().getCodeSource().getCertificates();
             if (certificate == null) {
-                URL location = Launcher.class.getProtectionDomain().getCodeSource().getLocation();
-                JarURLConnection jurl = (JarURLConnection) new URL("jar:" + location.toString() + "!/net/minecraft/Launcher.class").openConnection();
+                URL location = MinecraftLibrary.class.getProtectionDomain().getCodeSource().getLocation();
+                JarURLConnection jurl = (JarURLConnection) new URL("jar:" + location.toString() + "/net/minecraft/MinecraftLibrary.class").openConnection();
                 jurl.setDefaultUseCaches(true);
                 try {
                     certificate = jurl.getCertificates();

@@ -34,7 +34,6 @@ public class LauncherFrame {
     public static final String USERVERSION = "1.3";
     private static final long serialVersionUID = 1L;
     private Launcher launcher;
-    private LoginForm loginForm;
 
     public LauncherFrame(Frame frame, File workingDirectory, Proxy proxy, PasswordAuthentication proxyAuth, String[] args, Integer bullshit) {
         System.out.println();
@@ -53,131 +52,8 @@ public class LauncherFrame {
             return;
         }
         javafx.application.Application.launch(GuiApplication.class);
-        /*
-        this.setBackground(new Color(0, 0, 0));
-        this.loginForm = new LoginForm(this);
-        this.setLayout(new BorderLayout());
-        this.add(this.loginForm, "Center");
-        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        int width = gd.getDisplayMode().getWidth();
-        int height = gd.getDisplayMode().getHeight();
-        this.loginForm.setPreferredSize(new Dimension(width*17/20, height*4/5));
-
-        pack();
-        setLocationRelativeTo(null);
-        try {
-            setIconImage(ImageIO.read(LauncherFrame.class.getResource("favicon.png")));
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent arg0) {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            Thread.sleep(30000L);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        System.out.println("FORCING EXIT!");
-                        System.exit(0);
-                    }
-                }.start();
-
-                if (LauncherFrame.this.launcher != null) {
-                    LauncherFrame.this.launcher.stop();
-                    LauncherFrame.this.launcher.destroy();
-                }
-                System.exit(0);
-            }
-        });
-        
-        setVisible(true);
-        frame.dispose();
-        
-        this.loginForm.startMusicThread();
-        
-        new Thread() {
-            @Override
-            public void run() {
-                javafx.application.Application.launch(GuiApplication.class);
-            }
-        }.start();
-        */
     }
-
-    public void playCached(String userName) {
-        try {
-            if ((userName == null) || (userName.length() <= 0)) {
-                userName = "Player"; // lol
-            }
-            this.launcher = new Launcher();
-            this.launcher.customParameters.put("userName", userName);
-            this.launcher.init();
-            //this.removeAll();
-            //this.add(this.launcher, "Center");
-            this.launcher.start();
-            this.loginForm = null;
-            //this.setTitle("2Toasty Minecraft");
-            //this.validate();
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError(e.toString());
-        }
-    }
-
-    public void login(String userName, String password) {
-        try {
-            String parameters = "user=" + URLEncoder.encode(userName, "UTF-8") + "&pass=" + URLEncoder.encode(password, "UTF-8") + "&version=" + 14;
-            String result = Util.executePost("https://yimbot.net/minecraft/login.php", parameters);
-            if (result == null) {
-                showError("Can't connect to 2toast.net.");
-                this.loginForm.setNoNetwork();
-                return;
-            }
-            if (!result.contains(":")) {
-                showError(result);
-                this.loginForm.setNoNetwork();
-                return;
-            }
-
-            String[] values = result.split(":");
-            if (values.length <3 /*padma*/+2) {
-                showError(result);
-                this.loginForm.setNoNetwork();
-                return;
-            }
-            System.out.println("Logged in as " + values[2]);
-            //this.loginForm.stopMusicThread();
-            this.launcher = new Launcher();
-            this.launcher.customParameters.put("userName", values[2].trim());
-            this.launcher.customParameters.put("latestVersion", values[0].trim());
-            this.launcher.customParameters.put("downloadTag", values[1].trim());
-            this.launcher.customParameters.put("sessionId", values[3].trim());
-            this.launcher.init();
-            //this.removeAll();
-            //this.add(this.launcher, "Center");
-            this.launcher.start();
-            this.loginForm.loginOk();
-            this.loginForm = null;
-            //this.setTitle("2Toasty Minecraft");
-            //this.validate();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            showError(e.toString());
-            this.loginForm.setNoNetwork();
-        }
-    }
-
-    private void showError(String error) {
-        //removeAll();
-        //add(this.loginForm);
-        this.loginForm.setError(error);
-        //validate();
-    }
-
+    
     public static void main(String[] args) {
         OptionParser parser = new OptionParser();
         parser.allowsUnrecognizedOptions();

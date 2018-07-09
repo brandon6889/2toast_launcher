@@ -69,12 +69,6 @@ public class Launcher extends Applet implements Runnable, AppletStub, Consumer<S
     }
 
     public void init(String userName, String latestVersion, String downloadTag, String sessionId) {
-        try {
-            this.bgImage = ImageIO.read(LoginForm.class.getResource("/res/img/bgimg.jpg"));
-            this.nptoastLogo = ImageIO.read(LoginForm.class.getResource("/res/img/logo.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         this.customParameters.put("username", userName);
         this.customParameters.put("sessionid", sessionId);
         this.customParameters.put("downloadTag", downloadTag);
