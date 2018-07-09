@@ -26,6 +26,7 @@ import javafx.animation.Transition;
 import javafx.animation.PathTransition;
 import javafx.animation.FadeTransition;
 import javafx.util.Duration;
+import javafx.scene.input.KeyCode;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Random;
+import javafx.scene.input.KeyEvent;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -154,13 +156,12 @@ public class LoginPane extends AnchorPane {
         AnchorPane.setTopAnchor(logonStatus, 20.0);
         AnchorPane.setLeftAnchor(logonStatus, 25.0);
 
-        loginSymbol.setFitHeight(30.0);
-        loginSymbol.setFitWidth(30.0);
+        loginSymbol.setFitWidth(150.0);
         loginSymbol.setPreserveRatio(true);
         loginSymbol.setImage(new Image(getClass().getResource("/res/img/loading-transp3.gif").toExternalForm()));
         loginSymbol.setOpacity(0.0);
-        AnchorPane.setBottomAnchor(loginSymbol,80.0);
-        AnchorPane.setRightAnchor(loginSymbol,30.0);
+        AnchorPane.setBottomAnchor(loginSymbol,0.0);
+        AnchorPane.setRightAnchor(loginSymbol,0.0);
         getChildren().add(loginSymbol);
         fadeTransition.setNode(loginSymbol);
         fadeTransition.setDuration(Duration.millis(150));        
@@ -188,39 +189,37 @@ public class LoginPane extends AnchorPane {
         logonFailedPathTransition.setCycleCount(1);
         logonFailedPathTransition.setAutoReverse(false);
         
-        
-        logonButton.setOnAction(new EventHandler<ActionEvent>() {
+        usernameField.setOnKeyPressed(new EventHandler<KeyEvent>()
+        {
             @Override
-            public void handle(ActionEvent event) {
-                GameUpdater.force = updateBox.isSelected();
-                fadeTransition.setFromValue(loginSymbol.getOpacity());
-                fadeTransition.setToValue(1.0);
-                fadeTransition.play();
-                
-                logonStatus.setText("Logging in to Kuumba.club ...");
-                logonPath.getElements().clear();
-                logonPath.getElements().add(new MoveTo(rectPane.getWidth()*0.5,50f));
-                logonPath.getElements().add(new LineTo(rectPane.getWidth()*0.5,150f));
-                //logonPath.getElements().add(new LineTo(rectPane.getWidth()*0.5,50f));
-                logonPathTransition.play();
-                logonPathTransition.setOnFinished(new EventHandler<ActionEvent>(){
-                    
-                    @Override
-                    public void handle(ActionEvent event){
-                        fadeTransition.setFromValue(loginSymbol.getOpacity());
-                        fadeTransition.setToValue(0.0);
-                        fadeTransition.play();
-                        
-                        logonSuccess = parentApp.login(usernameField.getText(),passwordField.getText());
-                        if(logonSuccess == "success"){
-                            loginOk();
-                        }
-                        else{
-                            loginBad();
-                        }
-                    }
-                });                               
+            public void handle(KeyEvent ke)
+            {
+                if (ke.getCode().equals(KeyCode.ENTER))
+                {
+                    passwordField.requestFocus();
+                }
             }
+        });
+        
+        passwordField.setOnKeyPressed(new EventHandler<KeyEvent>()
+        {
+            @Override
+            public void handle(KeyEvent ke)
+            {
+                if (ke.getCode().equals(KeyCode.ENTER))
+                {
+                    doLogin();
+                }
+            }
+        });
+        
+        logonButton.setOnAction(new EventHandler<ActionEvent>() 
+        {
+            @Override
+            public void handle(ActionEvent event) 
+            {
+                doLogin();
+            }                                   
         });
         
         readUsername(); // (from file)
@@ -229,7 +228,38 @@ public class LoginPane extends AnchorPane {
         //checkAutoLogin();
         
     }
+    
+    public void doLogin(){
+        GameUpdater.force = updateBox.isSelected();
+        fadeTransition.setFromValue(loginSymbol.getOpacity());
+        fadeTransition.setToValue(1.0);
+        fadeTransition.play();
 
+        logonStatus.setText("Logging in to Kuumba.club ...");
+        logonPath.getElements().clear();
+        logonPath.getElements().add(new MoveTo(rectPane.getWidth()*0.5,50f));
+        logonPath.getElements().add(new LineTo(rectPane.getWidth()*0.5,150f));
+        //logonPath.getElements().add(new LineTo(rectPane.getWidth()*0.5,50f));
+        logonPathTransition.play();
+        logonPathTransition.setOnFinished(new EventHandler<ActionEvent>(){
+
+            @Override
+            public void handle(ActionEvent event){
+                fadeTransition.setFromValue(loginSymbol.getOpacity());
+                fadeTransition.setToValue(0.0);
+                fadeTransition.play();
+
+                logonSuccess = parentApp.login(usernameField.getText(),passwordField.getText());
+                if(logonSuccess == "success"){
+                    loginOk();
+                }
+                else{
+                    loginBad();
+                }
+            }
+        });
+    }
+     
     
     
     private void readUsername() {
