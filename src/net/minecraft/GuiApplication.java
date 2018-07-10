@@ -68,7 +68,7 @@ public class GuiApplication extends Application {
         stage.show();
         
         //TODO: Make Friendlier mediaplayer
-        /*String musicURL = getClass().getResource("/res/music.mp3").toExternalForm();
+        String musicURL = getClass().getResource("/res/music.m4a").toExternalForm();
         Media music = new Media(musicURL);
         try {
             mediaPlayer = new MediaPlayer(music);
@@ -77,7 +77,7 @@ public class GuiApplication extends Application {
         catch (RuntimeException ex) {
             // Unable to play due to codec issue, probably on Linux.
             System.out.println("Warning: Unable to play menu music.");
-        }*/
+        }
     }
     
     //Returns "success" if successful, otherwise returns error message
@@ -119,11 +119,5 @@ public class GuiApplication extends Application {
             System.out.println(e.toString());
             return e.toString();
         }        
-    }
-    
-    protected void continueWithStuff(){
-        //TODO: Do things if login successful
-        //i.e. remove loginPane
-    }
-    
+    }    
 }

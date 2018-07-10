@@ -320,7 +320,7 @@ public class LoginPane extends AnchorPane {
     
     public void loginOk() {
         writeUsername();
-        parentApp.continueWithStuff();
+        //parentApp.continueWithStuff();
     }
     
     public void checkAutologin() {
