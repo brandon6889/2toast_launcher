@@ -62,7 +62,7 @@ public class GuiApplication extends Application {
         
         stage.setMinWidth(550.0);
         stage.setMinHeight(200.0);
-        stage.getIcons().add(new Image("/res/img/favicon.png"));
+        stage.getIcons().add(new Image(getClass().getResource("/res/img/favicon.png").toExternalForm()));
         stage.setTitle("Kuumba Minecraft Launcher");
         stage.setScene(rootScene);
         stage.show();
