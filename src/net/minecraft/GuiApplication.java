@@ -68,7 +68,7 @@ public class GuiApplication extends Application {
         stage.show();
         
         //TODO: Make Friendlier mediaplayer
-        String musicURL = getClass().getResource("/res/music.m4a").toExternalForm();
+        String musicURL = getClass().getResource("/res/music.mp3").toExternalForm();
         Media music = new Media(musicURL);
         try {
             mediaPlayer = new MediaPlayer(music);
