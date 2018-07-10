@@ -41,6 +41,16 @@ public class LauncherFrame {
             System.exit(2);
             return;
         }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                }
+                frame.dispose();
+            }
+        }).start();
         javafx.application.Application.launch(GuiApplication.class);
     }
     
