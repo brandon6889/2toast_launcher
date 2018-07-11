@@ -5,46 +5,27 @@
  */
 package net.minecraft;
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
-import javafx.scene.shape.*;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.animation.Animation;
-import javafx.animation.Transition;
-import javafx.animation.PathTransition;
 import javafx.animation.FadeTransition;
 import javafx.animation.RotateTransition;
 import javafx.animation.Timeline;
 import javafx.animation.Interpolator;
 import javafx.util.Duration;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 
 /**
  *
@@ -60,12 +41,8 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
     protected ImageView launchingIcon;
     protected RotateTransition rotate360Transition;
     
-    private static final long serialVersionUID = 1L;
     public Map<String, String> customParameters;
     private GameUpdater gameUpdater;
-    private boolean gameUpdaterStarted;
-    private boolean active;
-    private int context;
     private final List<String> stdOpts = new ArrayList();
 
     
@@ -124,11 +101,6 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
         fadeTransition.setDuration(Duration.millis(350));
         fadeTransition.play();
         
-        //Start The Download!
-        this.gameUpdaterStarted = false;
-        this.active = false;
-        this.context = 0;
-        
         stdOpts.add("-XX:+UseConcMarkSweepGC");
         stdOpts.add("-XX:-UseAdaptiveSizePolicy");
         stdOpts.add("-XX:-OmitStackTraceInFastThrow");
@@ -182,7 +154,7 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
                                 new Thread(new StreamHandler(p.getInputStream(),System.out,LauncherPane.this)).start();
                             }
                         } catch (Exception e) {e.printStackTrace();}
-                    } catch (Exception ex) {Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, null, ex);}
+                    } catch (Exception ex) {Logger.getLogger(LauncherPane.class.getName()).log(Level.SEVERE, null, ex);}
                 }
             }
         };
@@ -214,7 +186,6 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
         };
         t.setDaemon(true);
         t.start();
-        this.gameUpdaterStarted = true;
     }
     
     @Override
@@ -222,7 +193,6 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
         if (this.isVisible() && line.contains("LWJGL Version: ")) {
             System.out.println("Game started, closing launcher.");
             System.exit(0);
-            //this.getParent().setVisible(false);
         }
     }
 }
