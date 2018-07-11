@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package net.minecraft;
 
 import javafx.geometry.Pos;
@@ -101,11 +96,12 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
         fadeTransition.setDuration(Duration.millis(350));
         fadeTransition.play();
         
-        stdOpts.add("-XX:+UseConcMarkSweepGC");
-        stdOpts.add("-XX:-UseAdaptiveSizePolicy");
+        stdOpts.add("-XX:+UseParallelGC");
         stdOpts.add("-XX:-OmitStackTraceInFastThrow");
-        stdOpts.add("-Xms128m");
-        stdOpts.add("-Xmx3968m");
+        stdOpts.add("-XX:+AggressiveOpts");
+        stdOpts.add("-XX:+AggressiveHeap");
+        stdOpts.add("-Xms1400M");
+        stdOpts.add("-Xmn1400M");
         stdOpts.add("-Dfml.ignoreInvalidMinecraftCertificates=true");
         stdOpts.add("-Dfml.ignorePatchDiscrepancies=true");
         stdOpts.add("-Duser.home="+System.getProperty("user.home", "."));
