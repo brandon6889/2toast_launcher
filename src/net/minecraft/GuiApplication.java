@@ -75,7 +75,7 @@ public class GuiApplication extends Application {
             mediaPlayer.play();
         }
         catch (RuntimeException ex) {
-            // Unable to play due to codec issue, probably on Linux.
+            // Unable to play due to codec issue. Likely OpenJDK on Linux.
             System.out.println("Warning: Unable to play menu music.");
         }
     }
@@ -95,14 +95,14 @@ public class GuiApplication extends Application {
             
             //ERROR 2: Improper Response or failed logon
             if (!result.contains(":")) {
-                return "Logon Failed or Improper response received:\n"+result;
+                return "Login failed or login server error:\n"+result;
             }
 
             String[] values = result.split(":");
             
             //ERROR 3: Need to post in forum introduction
-            if (values.length <3 /*padma*/+2) {
-                return "Authenticated, but you need to post on the forum!";
+            if (values.length < 5) {
+                return "Logged in, but first post an intro on the forum!";
             }
             
             System.out.println("Logged in as " + values[2]);
