@@ -22,8 +22,6 @@ public class ConfigurationFetcher {
     private final String mServer;
     /* Track whether config is new/needs update. */
     private boolean mLastConfigNeedsUpdate = false;
-    /* Downloaded config */
-    private String mCurPath;
     
     public ConfigurationFetcher(String path, String serverUrl) {
         mPath = path;
@@ -32,7 +30,7 @@ public class ConfigurationFetcher {
     
     public Object get(Class clazz, String path) throws Exception {
         mLastConfigNeedsUpdate = false;
-        mCurPath = path;
+        String localPath = mPath + path;
         File dir = new File(mPath + path.substring(0,path.lastIndexOf("/")));
         if (!dir.exists())
             dir.mkdirs();
@@ -44,7 +42,7 @@ public class ConfigurationFetcher {
             configSource.setRequestProperty("Cache-Control", "no-cache");
             configSource.connect();
         }
-        if (new File(mPath + path).exists()) {
+        if (new File(localPath).exists()) {
             path += ".new";
             mLastConfigNeedsUpdate = true;
         }
@@ -53,7 +51,7 @@ public class ConfigurationFetcher {
         int bufferSize;
         long downloadTime;
         try (InputStream inputstream = GameUpdater.getJarInputStream(fileName, configSource)) {
-            fos = new FileOutputStream(mPath + path);
+            fos = new FileOutputStream(localPath);
             downloadTime = System.currentTimeMillis();
             while ((bufferSize = inputstream.read(buffer, 0, buffer.length)) != -1)
                 fos.write(buffer, 0, bufferSize);
@@ -62,12 +60,8 @@ public class ConfigurationFetcher {
         downloadTime = System.currentTimeMillis() - downloadTime;
         System.out.println("Got " + fileName + " in "+downloadTime+"ms");
         
-        return mGson.fromJson(Util.readFile(new File(mPath + path)), clazz);
-    }
-    
-    public boolean needUpdate() {
-        File newConf = new File(mPath + mCurPath + ".new");
-        File oldConf = new File(mPath + mCurPath);
+        File newConf = new File(localPath + ".new");
+        File oldConf = new File(localPath);
         if (mLastConfigNeedsUpdate) {
             try {
                 mLastConfigNeedsUpdate = !MinecraftResourceDownloader.calcSHA1(oldConf)
@@ -75,6 +69,11 @@ public class ConfigurationFetcher {
                 Files.move(newConf.toPath(), oldConf.toPath(), REPLACE_EXISTING);
             } catch (IOException | NoSuchAlgorithmException e) {/* Default to true, sure. */}
         }
+        
+        return mGson.fromJson(Util.readFile(new File(localPath)), clazz);
+    }
+    
+    public boolean needUpdate() {
         return mLastConfigNeedsUpdate;
     }
 }
