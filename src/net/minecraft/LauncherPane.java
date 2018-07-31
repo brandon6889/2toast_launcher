@@ -37,7 +37,7 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
     protected VBox progBox;
     protected Text downloadAction;
     protected ProgressBar downloadProgress;
-    protected FadeTransition fadeTransition;
+    protected FadeTransition fadeTransitionPane, fadeTransitionSpinner;
     protected ImageView launchingIcon;
     protected RotateTransition rotate360Transition;
     
@@ -94,12 +94,12 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
         this.setCenter(progBox);
         progBox.setAlignment(Pos.CENTER);
         
-        fadeTransition = new FadeTransition();
-        fadeTransition.setFromValue(0.0);
-        fadeTransition.setToValue(1.0);
-        fadeTransition.setNode(this);
-        fadeTransition.setDuration(Duration.millis(350));
-        fadeTransition.play();
+        fadeTransitionPane = new FadeTransition();
+        fadeTransitionPane.setFromValue(0.0);
+        fadeTransitionPane.setToValue(1.0);
+        fadeTransitionPane.setNode(this);
+        fadeTransitionPane.setDuration(Duration.millis(350));
+        fadeTransitionPane.play();
         
         stdOpts.add("-XX:+UseConcMarkSweepGC");
         stdOpts.add("-XX:-UseAdaptiveSizePolicy");
@@ -171,9 +171,12 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
                     else{
                         downloadAction.setText("Launching game...");
                         downloadProgress.setProgress(1.0);
-                        fadeTransition.setNode(launchingIcon);
-                        fadeTransition.setDuration(Duration.millis(500));
-                        fadeTransition.play();
+                        fadeTransitionSpinner = new FadeTransition();
+                        fadeTransitionSpinner.setFromValue(0.0);
+                        fadeTransitionSpinner.setToValue(1.0);
+                        fadeTransitionSpinner.setNode(launchingIcon);
+                        fadeTransitionSpinner.setDuration(Duration.millis(500));
+                        fadeTransitionSpinner.play();
                         return;
                     }
                     try {
