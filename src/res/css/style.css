@@ -1,3 +1,5 @@
 .root {
      -fx-background-image: url("/res/img/bgimg.jpg");
+     -fx-background-size: cover;
+     -fx-background-position: center center;
 }

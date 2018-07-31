@@ -42,19 +42,12 @@ public class GuiApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         
-        //Define Root AnchorPane and Scene
+        // Define Root AnchorPane and Scene
         rootPane = new AnchorPane();
         rootScene = new Scene(rootPane, 800, 550);
-                
-        //Crappy Background Imageview
-        //TODO: Make this preserve ratio, but also fully fill window
-        //TODO 2: stop using a shitty image for the background
-        ImageView imageView = new ImageView();
-        imageView.setPreserveRatio(false);
-        imageView.fitWidthProperty().bind(rootScene.widthProperty());
-        imageView.fitHeightProperty().bind(rootScene.heightProperty());
-        imageView.setImage(new Image(getClass().getResource("/res/img/minecraft-beautiful-landscape-best-decorating-7.jpg").toExternalForm()));
-        rootPane.getChildren().add(imageView);
+
+        // Apply background image.
+        rootScene.getStylesheets().add("/res/css/style.css");
         
         //Instantiate LoginPane to interact with user:
         LoginPane loginPane = new LoginPane(this);
