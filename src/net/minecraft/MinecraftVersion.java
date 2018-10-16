@@ -35,6 +35,10 @@ public class MinecraftVersion implements MinecraftResource {
     public Integer size;
     @SerializedName("hash")
     public String hash;
+    @SerializedName("config")
+    public MinecraftConfig config;
+    @SerializedName("resources")
+    public MinecraftResourcesBlob resources;
     
     /* Internal data */
     private int mFileSize = -1;
