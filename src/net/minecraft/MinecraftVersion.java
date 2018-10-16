@@ -38,7 +38,6 @@ public class MinecraftVersion implements MinecraftResource {
     
     /* Internal data */
     private int mFileSize = -1;
-    private String mUrl = "";
     
     /**
      * Proxy for file size. If the size was provided by the asset index, use
@@ -49,11 +48,11 @@ public class MinecraftVersion implements MinecraftResource {
     @Override
     public int getSize() throws MalformedURLException, IOException {
         if (mFileSize == -1) {
-            mUrl = GameUpdater.SERVER_URL + getPath();
             if (size != null) {
                 mFileSize = size;
             } else {
-                URLConnection urlconnection = new URL(mUrl).openConnection();
+                String url = GameUpdater.SERVER_URL + getPath();
+                URLConnection urlconnection = new URL(url).openConnection();
                 urlconnection.setDefaultUseCaches(false);
                 if ((urlconnection instanceof HttpURLConnection)) {
                     ((HttpURLConnection) urlconnection).setRequestMethod("HEAD");
