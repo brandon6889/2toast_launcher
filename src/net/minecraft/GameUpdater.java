@@ -222,6 +222,10 @@ public class GameUpdater implements Runnable {
         
         LinkedList<MinecraftResource> game = new LinkedList();
         game.add(mCurrentVersion);
+        if (mCurrentVersion.config != null)
+            game.add(mCurrentVersion.config);
+        if (mCurrentVersion.resources != null)
+            game.add(mCurrentVersion.resources);
         
         MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(WORKDIR, this);
         downloader.addResources(game);
@@ -293,6 +297,23 @@ public class GameUpdater implements Runnable {
         
         if (mCurrentVersion.isLegacy())
             mAssets.buildVirtualDir(WORKDIR);
+        
+        if (mCurrentVersion.config != null) {
+            String blobFile = WORKDIR + mCurrentVersion.config.getPath();
+            String outDir = WORKDIR + "config" + File.separator;
+            File dir = new File(outDir);
+            Util.delete(dir);
+            dir.mkdirs();
+            extractZip(blobFile, outDir);
+        }
+        if (mCurrentVersion.resources != null) {
+            String blobFile = WORKDIR + mCurrentVersion.resources.getPath();
+            String outDir = WORKDIR + "resources" + File.separator;
+            File dir = new File(outDir);
+            Util.delete(dir);
+            dir.mkdirs();
+            extractZip(blobFile, outDir);
+        }
     }
 
     private void fatalErrorOccured(String error, Exception e) {
