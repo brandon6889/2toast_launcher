@@ -301,9 +301,7 @@ public class GameUpdater implements Runnable {
         if (mCurrentVersion.config != null) {
             String blobFile = WORKDIR + mCurrentVersion.config.getPath();
             String outDir = WORKDIR + "config" + File.separator;
-            File dir = new File(outDir);
-            Util.delete(dir);
-            dir.mkdirs();
+            (new File(outDir)).mkdirs();
             extractZip(blobFile, outDir);
         }
         if (mCurrentVersion.resources != null) {
