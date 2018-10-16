@@ -30,7 +30,8 @@ public class GameUpdater implements Runnable {
     protected boolean fatalError;
     protected String fatalErrorDescription;
 
-    private final String latestVersion;
+    private final String LATEST_VERSION;
+    private final String WORKDIR;
     protected static final String SERVER_URL = "http://kuumba.club/minecraft/";
     
     private static GameUpdater INSTANCE;
@@ -67,16 +68,8 @@ public class GameUpdater implements Runnable {
     private GameUpdater(String latestVersion) {
         state = UpdaterStatus.INIT;
         this.percentage = 0;
-        this.latestVersion = latestVersion;
-    }
-
-    public void init(String path) {
-        if (force) {
-            File confDir = new File(path + "config");
-            try {
-                Util.delete(confDir);
-            } catch (IOException ex) {}
-        }
+        this.LATEST_VERSION = latestVersion;
+        WORKDIR = Util.getWorkingDirectory() + File.separator;
     }
 
     private String generateStacktrace(Exception exception) {
@@ -90,17 +83,68 @@ public class GameUpdater implements Runnable {
         return state.getDescription();
     }
 
-    protected void loadJarURLs(String path) throws Exception {
+    @SuppressWarnings("unchecked")
+    @Override
+    public void run() {
+        init();
+        try {
+            try {
+                loadJarURLs();
+
+                File versionFile = new File(WORKDIR + "version");
+                boolean cacheAvailable = false;
+                if ((!force) && (versionFile.exists()) && ((this.LATEST_VERSION.equals("-1")) || (this.LATEST_VERSION.equals(readVersionFile(versionFile))))) {
+                    System.out.println("Found cached version " + this.LATEST_VERSION);
+                    cacheAvailable = true;
+                    //ToDo: Actually check the cache if hashes are available
+                    this.percentage = 1000;
+                }
+                if ((!cacheAvailable) || (force)) {
+                    if (versionFile.exists() && !(this.LATEST_VERSION.equals(readVersionFile(versionFile))))
+                        System.out.println("Updating from version " + readVersionFile(versionFile) + " to " + this.LATEST_VERSION);
+                    else {
+                        System.out.println("Downloading version " + this.LATEST_VERSION);
+                    }
+                    downloadLibraries();
+                    downloadAssets();
+                    downloadMods();
+                    downloadGame();
+                    extractFiles();
+                    if (this.LATEST_VERSION != null) {
+                        this.percentage = 1000;
+                        writeVersionFile(versionFile, this.LATEST_VERSION);
+                    }
+                }
+                this.state = UpdaterStatus.LAUNCH;
+            } catch (AccessControlException ace) {
+                fatalErrorOccured(ace.getMessage(), ace);
+            }
+        } catch (Exception e) {
+            fatalErrorOccured(e.getMessage(), e);
+        }
+
+    }
+
+    private void init() {
+        if (force) {
+            File confDir = new File(WORKDIR + "config");
+            try {
+                Util.delete(confDir);
+            } catch (IOException ex) {}
+        }
+    }
+
+    private void loadJarURLs() throws Exception {
         this.state = UpdaterStatus.DL_CONF;
         
         // Offline play not supported. Get legit MC.
-        if (this.latestVersion == null || latestVersion.equals("")) throw new Exception("Unknown Version");
+        if (this.LATEST_VERSION == null || LATEST_VERSION.equals("")) throw new Exception("Unknown Version");
         
-        System.out.println("Fetching config for Minecraft "+latestVersion);
-        ConfigurationFetcher config = new ConfigurationFetcher(path, SERVER_URL);
+        System.out.println("Fetching config for Minecraft "+LATEST_VERSION);
+        ConfigurationFetcher config = new ConfigurationFetcher(WORKDIR, SERVER_URL);
         
         // Get game config.
-        String gameConfigPath = "versions/"+latestVersion+".json";
+        String gameConfigPath = "versions/"+LATEST_VERSION+".json";
         mCurrentVersion = (MinecraftVersion)config.get(MinecraftVersion.class, gameConfigPath);
         for (MinecraftLibrary library : mCurrentVersion.libraries)
             if (library.allow())
@@ -118,7 +162,7 @@ public class GameUpdater implements Runnable {
         this.percentage = 20;
         
         // Get mods config.
-        String modConfigPath = "mods/"+latestVersion+".json";
+        String modConfigPath = "mods/"+LATEST_VERSION+".json";
         try {
             mMods = (MinecraftModList)config.get(MinecraftModList.class, modConfigPath);
         } catch (Exception e) {
@@ -129,50 +173,7 @@ public class GameUpdater implements Runnable {
         this.percentage = 40;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public void run() {
-        String path =  Util.getWorkingDirectory() + File.separator;
-        init(path);
-        try {
-            try {
-                loadJarURLs(path);
-
-                File versionFile = new File(path + "version");
-                boolean cacheAvailable = false;
-                if ((!force) && (versionFile.exists()) && ((this.latestVersion.equals("-1")) || (this.latestVersion.equals(readVersionFile(versionFile))))) {
-                    System.out.println("Found cached version " + this.latestVersion);
-                    cacheAvailable = true;
-                    //ToDo: Actually check the cache if hashes are available
-                    this.percentage = 1000;
-                }
-                if ((!cacheAvailable) || (force)) {
-                    if (versionFile.exists() && !(this.latestVersion.equals(readVersionFile(versionFile))))
-                        System.out.println("Updating from version " + readVersionFile(versionFile) + " to " + this.latestVersion);
-                    else {
-                        System.out.println("Downloading version " + this.latestVersion);
-                    }
-                    downloadLibraries(path);
-                    downloadAssets(path);
-                    downloadMods(path);
-                    downloadGame(path);
-                    extractFiles(path);
-                    if (this.latestVersion != null) {
-                        this.percentage = 1000;
-                        writeVersionFile(versionFile, this.latestVersion);
-                    }
-                }
-                this.state = UpdaterStatus.LAUNCH;
-            } catch (AccessControlException ace) {
-                fatalErrorOccured(ace.getMessage(), ace);
-            }
-        } catch (Exception e) {
-            fatalErrorOccured(e.getMessage(), e);
-        }
-
-    }
-
-    protected String readVersionFile(File file) throws Exception {
+    private String readVersionFile(File file) throws Exception {
         String version;
         try (DataInputStream dis = new DataInputStream(new FileInputStream(file))) {
             version = dis.readUTF();
@@ -180,49 +181,49 @@ public class GameUpdater implements Runnable {
         return version;
     }
 
-    protected void writeVersionFile(File file, String version) throws Exception {
+    private void writeVersionFile(File file, String version) throws Exception {
         try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(file))) {
             dos.writeUTF(version);
         }
     }
     
-    protected void downloadLibraries(String path) throws Exception {
+    private void downloadLibraries() throws Exception {
         this.state = UpdaterStatus.DL_LIBS;
         
-        MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
+        MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(WORKDIR, this);
         downloader.addResources(mLibraries);
         startDownloader(downloader, 50, 350);
     }
 
-    protected void downloadAssets(String path) throws Exception {
+    private void downloadAssets() throws Exception {
         this.state = UpdaterStatus.DL_RES;
 
-        MinecraftResourceDownloader d = mAssets.createDownloader(path, this);
+        MinecraftResourceDownloader d = mAssets.createDownloader(WORKDIR, this);
         startDownloader(d, 350, 650);
     }
     
-    protected void downloadMods(String path) throws Exception {
+    private void downloadMods() throws Exception {
         if (mMods == null)
             return;
         
         this.state = UpdaterStatus.DL_MODS;
         
-        new File(path+"coremods").mkdirs();
-        new File(path+"mods").mkdirs();
+        new File(WORKDIR+"coremods").mkdirs();
+        new File(WORKDIR+"mods").mkdirs();
         
-        MinecraftResourceDownloader downloader = mMods.createDownloader(path, this);
+        MinecraftResourceDownloader downloader = mMods.createDownloader(WORKDIR, this);
         startDownloader(downloader, 650, 950);
         
-        mMods.cleanup(path);
+        mMods.cleanup(WORKDIR);
     }
     
-    protected void downloadGame(String path) throws Exception {
+    private void downloadGame() throws Exception {
         this.state = UpdaterStatus.DL_GAME;
         
         LinkedList<MinecraftResource> game = new LinkedList();
         game.add(mCurrentVersion);
         
-        MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(path, this);
+        MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(WORKDIR, this);
         downloader.addResources(game);
         startDownloader(downloader, 950, 990);
     }
@@ -281,20 +282,20 @@ public class GameUpdater implements Runnable {
         }
     }
 
-    protected void extractFiles(String path) throws Exception {
+    private void extractFiles() throws Exception {
         this.state = UpdaterStatus.EXTRACT;
         
-        File nativeDir = new File(path + "bin/" + latestVersion + "-natives");
+        File nativeDir = new File(WORKDIR + "bin/" + LATEST_VERSION + "-natives");
         nativeDir.delete();
         nativeDir.mkdirs();
         for (MinecraftLibrary l : mLibraries)
-            l.extract(path, nativeDir.toString());
+            l.extract(WORKDIR, nativeDir.toString());
         
         if (mCurrentVersion.isLegacy())
-            mAssets.buildVirtualDir(path);
+            mAssets.buildVirtualDir(WORKDIR);
     }
 
-    protected void fatalErrorOccured(String error, Exception e) {
+    private void fatalErrorOccured(String error, Exception e) {
         this.fatalError = true;
         this.fatalErrorDescription = ("Fatal error occured (" + this.state + "): " + error);
         System.out.println(this.fatalErrorDescription);
@@ -318,7 +319,7 @@ public class GameUpdater implements Runnable {
     }
     
     protected String getMCVersion() {
-        return latestVersion;
+        return LATEST_VERSION;
     }
     
     private void startDownloader(MinecraftResourceDownloader downloader, int initialPercentage, int finalPercentage) throws Exception {
