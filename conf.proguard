@@ -6,7 +6,7 @@
 -libraryjars <java.home>/lib/rt.jar
 -libraryjars <java.home>/lib/jce.jar
 -libraryjars <java.home>/lib/ext/jfxrt.jar
--libraryjars libsrc
+-libraryjars lib
 
 -dontskipnonpubliclibraryclassmembers
 -target 1.8

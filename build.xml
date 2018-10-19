@@ -1,6 +1,6 @@
-<project name="2toast launcher" default="dist" basedir=".">
+<project name="kuumba launcher" default="dist" basedir="." xmlns:fx="javafx:com.sun.javafx.tools.ant">
   <description>
-    2toast launcher manages the Minecraft client and resources
+    Kuumba launcher manages the Minecraft client and resources
   </description>
   <property name="src" location="src"/>
   <property name="build" location="bin"/>
@@ -18,7 +18,7 @@
 
   <target name="compile" depends="init" description="Compile the source">
     <javac target="1.8" source="1.8" srcdir="${src}" destdir="${build}" includeantruntime="false">
-      <classpath path="libsrc"/>
+      <classpath path="lib"/>
     </javac>
     <copy todir="${build}" >
       <fileset dir="${src}">
@@ -40,22 +40,32 @@
   </target>
 
   <target name="dist" depends="obfuscate" description="Generate the dist files">
-    <jar jarfile="${dist}/2toast-launcher-${DSTAMP}.jar" basedir="${obfclass}">
-      <manifest>
-        <attribute name="Main-Class" value="net.minecraft.MinecraftLauncher"/>
-      </manifest>
-      <zipgroupfileset dir="${lib}"/>
-    </jar>
+    <taskdef resource="com/sun/javafx/tools/ant/antlib.xml" uri="javafx:com.sun.javafx.tools.ant" classpath="/usr/lib/jvm/java-8-openjdk-amd64/lib/ant-javafx.jar:${JAVA_HOME}/lib/ant-javafx.jar"/>
+    <fx:application id="KuumbaLauncher" name="KuumbaLauncher" mainClass="net.minecraft.MinecraftLauncher"/>
+    <fx:resources id="KuumbaResources">
+      <fx:fileset dir="${dist}" includes="kuumba-launcher-${DSTAMP}.jar"/>
+    </fx:resources>
+    <fx:jar destfile="${dist}/kuumba-launcher-${DSTAMP}.jar">
+      <fx:application refid="KuumbaLauncher"/>
+      <fx:resources refid="KuumbaResources"/>
+      <fx:fileset dir="${obfclass}"/>
+      <fx:fileset dir="${lib}"/>
+    </fx:jar>
   </target>
 
   <target name="debug" depends="compile" description="Generate debug build">
     <mkdir dir="${debug}"/>
-    <jar jarfile="${debug}/2toast-launcher-${DSTAMP}.jar" basedir="${build}">
-      <manifest>
-        <attribute name="Main-Class" value="net.minecraft.MinecraftLauncher"/>
-      </manifest>
-      <zipgroupfileset dir="${lib}"/>
-    </jar>
+    <taskdef resource="com/sun/javafx/tools/ant/antlib.xml" uri="javafx:com.sun.javafx.tools.ant" classpath="/usr/lib/jvm/java-8-openjdk-amd64/lib/ant-javafx.jar:${JAVA_HOME}/lib/ant-javafx.jar"/>
+    <fx:application id="KuumbaLauncher" name="KuumbaLauncher" mainClass="net.minecraft.MinecraftLauncher"/>
+    <fx:resources id="KuumbaResources">
+      <fx:fileset dir="${debug}" includes="kuumba-launcher-${DSTAMP}.jar"/>
+    </fx:resources>
+    <fx:jar destfile="${debug}/kuumba-launcher-${DSTAMP}.jar">
+      <fx:application refid="KuumbaLauncher"/>
+      <fx:resources refid="KuumbaResources"/>
+      <fx:fileset dir="${build}"/>
+      <fx:fileset dir="${lib}"/>
+    </fx:jar>
   </target>
 
   <target name="clean" description="clean up" >
