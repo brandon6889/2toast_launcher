@@ -226,6 +226,8 @@ public class GameUpdater implements Runnable {
             game.add(mCurrentVersion.config);
         if (mCurrentVersion.resources != null)
             game.add(mCurrentVersion.resources);
+        if (mCurrentVersion.scripts != null)
+            game.add(mCurrentVersion.scripts);
         
         MinecraftResourceDownloader downloader = new MinecraftResourceDownloader(WORKDIR, this);
         downloader.addResources(game);
@@ -261,6 +263,22 @@ public class GameUpdater implements Runnable {
             throw new Exception("Unable to download " + currentFile + " from " + urlconnection.getURL());
         }
         return is[0];
+    }
+    
+    /**
+     * Extracts a Minecraft Resource into a folder.
+     * @param resource Resource to extract. Currently assumes a zip file.
+     * @param outDir Output folder relative to Minecraft appdata folder.
+     * @param deleteOutDir If true, delete destination dir before extracting.
+     */
+    private void extractResource(MinecraftResource resource, String outDir, boolean deleteOutDir) throws Exception {
+        String blobFile = WORKDIR + resource.getPath();
+        String out = WORKDIR + outDir + File.separator;
+        File dir = new File(out);
+        if (deleteOutDir)
+            Util.delete(dir);
+        dir.mkdirs();
+        extractZip(blobFile, out);
     }
 
     static protected void extractZip(String in, String out) throws Exception {
@@ -298,20 +316,14 @@ public class GameUpdater implements Runnable {
         if (mCurrentVersion.isLegacy())
             mAssets.buildVirtualDir(WORKDIR);
         
-        if (mCurrentVersion.config != null) {
-            String blobFile = WORKDIR + mCurrentVersion.config.getPath();
-            String outDir = WORKDIR + "config" + File.separator;
-            (new File(outDir)).mkdirs();
-            extractZip(blobFile, outDir);
-        }
-        if (mCurrentVersion.resources != null) {
-            String blobFile = WORKDIR + mCurrentVersion.resources.getPath();
-            String outDir = WORKDIR + "resources" + File.separator;
-            File dir = new File(outDir);
-            Util.delete(dir);
-            dir.mkdirs();
-            extractZip(blobFile, outDir);
-        }
+        if (mCurrentVersion.config != null)
+            extractResource(mCurrentVersion.config, "config", false);
+        
+        if (mCurrentVersion.resources != null)
+            extractResource(mCurrentVersion.resources, "resources", true);
+        
+        if (mCurrentVersion.scripts != null)
+            extractResource(mCurrentVersion.scripts, "scripts", true);
     }
 
     private void fatalErrorOccured(String error, Exception e) {
