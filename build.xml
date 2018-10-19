@@ -18,17 +18,17 @@
 
   <target name="compile" depends="init" description="Compile the source">
     <javac target="1.8" source="1.8" srcdir="${src}" destdir="${build}" includeantruntime="false">
-      <classpath path="lib"/>
+    <classpath path="${lib}"/>
     </javac>
     <copy todir="${build}" >
       <fileset dir="${src}">
-		<include name="**/*.ks" />
+	<include name="**/*.ks" />
         <include name="**/*.css" />
         <include name="**/*.png" />
         <include name="**/*.jpg" />
         <include name="**/*.gif" />
-		<include name="**/*.m4a" />
-		<include name="**/*.mp3" />
+	<include name="**/*.m4a" />
+	<include name="**/*.mp3" />
       </fileset>
     </copy>   
   </target>
