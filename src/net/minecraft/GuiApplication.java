@@ -1,32 +1,14 @@
 package net.minecraft;
 
-import java.text.MessageFormat;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
-import java.net.Proxy;
-import java.util.List;
-import java.io.IOException;
 import java.net.URLEncoder;
 
 
@@ -47,7 +29,7 @@ public class GuiApplication extends Application {
         rootScene = new Scene(rootPane, 800, 550);
 
         // Apply background image.
-        rootScene.getStylesheets().add("/res/css/style.css");
+        rootScene.getStylesheets().add(getClass().getResource("/res/css/style.css").toExternalForm());
         
         //Instantiate LoginPane to interact with user:
         LoginPane loginPane = new LoginPane(this);
