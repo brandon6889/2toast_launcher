@@ -11,9 +11,12 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -51,6 +54,32 @@ public class LauncherFrame {
                 frame.dispose();
             }
         }).start();
+        
+        // Verify that the launcher JAR is in the classpath. Causes issues loading resources..
+        URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+        URL launcherJar = getClass().getProtectionDomain().getCodeSource().getLocation();
+        boolean jarInClasspath = false;
+        for (URL url : sysloader.getURLs()) {
+            if (url == launcherJar) {
+                jarInClasspath = true;
+                break;
+            }
+        }
+        if (!jarInClasspath) {
+            System.out.print("Fixing launcher classpath...");
+            Class sysclass = URLClassLoader.class;
+            final Class[] parameters = new Class[]{URL.class};
+            try {
+                Method method = sysclass.getDeclaredMethod("addURL", parameters);
+                method.setAccessible(true);
+                method.invoke(sysloader, new Object[]{launcherJar});
+                System.out.println(" ok.");
+            } catch (Exception e) {
+                System.out.println(" nope. Oh, well.");
+            }
+        }
+        
+        // Start JavaFX Application
         javafx.application.Application.launch(GuiApplication.class);
     }
     
