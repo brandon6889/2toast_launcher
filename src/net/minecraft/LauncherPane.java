@@ -9,7 +9,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
@@ -47,7 +46,7 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
 
     
     
-    public LauncherPane(GuiApplication mainApp, String[] params){
+    public LauncherPane(GuiApplication mainApp, String[] params) {
         setOpacity(0.0);
         
         parentApp = mainApp;
@@ -77,14 +76,8 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
         rotate360Transition.setInterpolator(Interpolator.LINEAR);
         rotate360Transition.play();
 
-
         //show border
         this.setStyle("-fx-border-color: black");
-        
-        AnchorPane.setTopAnchor(this, 25.0);
-        AnchorPane.setLeftAnchor(this, 25.0);
-        AnchorPane.setRightAnchor(this, 25.0);
-        AnchorPane.setBottomAnchor(this, 25.0);
         
         progBox.getChildren().add(downloadAction);
         progBox.getChildren().add(downloadProgress);
@@ -109,15 +102,13 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
         stdOpts.add("-Dfml.ignoreInvalidMinecraftCertificates=true");
         stdOpts.add("-Dfml.ignorePatchDiscrepancies=true");
         stdOpts.add("-Duser.home="+System.getProperty("user.home", "."));
-        init();
-        start();
     }
 
-    public void init() {
+    protected void init() {
         this.gameUpdater = GameUpdater.getUpdater(latestVersion);
     }
 
-    public void start() {
+    protected void start() {
         Thread t = new Thread() {
             @Override
             public void run() {

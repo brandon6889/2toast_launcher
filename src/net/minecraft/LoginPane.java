@@ -5,6 +5,8 @@
  */
 package net.minecraft;
 
+import javafx.animation.PathTransition;
+import javafx.animation.FadeTransition;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -13,33 +15,23 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.CheckBox;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
-import javafx.scene.shape.*;
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.animation.Animation;
-import javafx.animation.Transition;
-import javafx.animation.PathTransition;
-import javafx.animation.FadeTransition;
 import javafx.util.Duration;
-import javafx.scene.input.KeyCode;
 
-import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Random;
-import javafx.scene.input.KeyEvent;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -48,7 +40,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
-import javax.imageio.ImageIO;
 /**
  *
  * @author Frank

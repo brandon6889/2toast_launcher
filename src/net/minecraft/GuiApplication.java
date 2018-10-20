@@ -84,8 +84,14 @@ public class GuiApplication extends Application {
             
             //this.loginForm.stopMusicThread();           
             
-            LauncherPane launcherPane = new LauncherPane(this,values);      
+            LauncherPane launcherPane = new LauncherPane(this,values);
+            AnchorPane.setTopAnchor(launcherPane, 25.0);
+            AnchorPane.setLeftAnchor(launcherPane, 25.0);
+            AnchorPane.setRightAnchor(launcherPane, 25.0);
+            AnchorPane.setBottomAnchor(launcherPane, 25.0);
             rootPane.getChildren().add(launcherPane);
+            launcherPane.init();
+            launcherPane.start();
 
             return "success";
 
