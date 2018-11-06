@@ -123,15 +123,9 @@ public class LauncherPane extends BorderPane implements Consumer<String>{
                         launchCommand.add("-cp");
                         launchCommand.add(gameUpdater.getClassPath());
                         launchCommand.add(gameUpdater.getMainClass());
-                        String token = sessionId;
-                        for (String s : gameUpdater.getLaunchArgs(username, token))
-                            launchCommand.add(s);
+                        launchCommand.addAll(gameUpdater.getLaunchArgs(username, sessionId));
                         launchCommand.add("--height 480 --width 854");
-                        /*System.out.print("COMMAND: ");
-                        for (String s : launchCommand) {
-                        System.out.println(s);
-                        }
-                        System.out.println();*/
+                        
                         System.out.println("Executing game..");
                         ProcessBuilder pb = new ProcessBuilder(launchCommand);
                         pb.directory(Util.getWorkingDirectory());
