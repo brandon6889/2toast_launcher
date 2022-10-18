@@ -40,7 +40,7 @@
   </target>
 
   <target name="dist" depends="obfuscate" description="Generate the dist files">
-    <taskdef resource="com/sun/javafx/tools/ant/antlib.xml" uri="javafx:com.sun.javafx.tools.ant" classpath="/usr/lib/jvm/java-8-openjdk-amd64/lib/ant-javafx.jar:${JAVA_HOME}/lib/ant-javafx.jar"/>
+    <taskdef resource="com/sun/javafx/tools/ant/antlib.xml" uri="javafx:com.sun.javafx.tools.ant" classpath="/usr/lib/jvm/jdk1.8.0_261/lib/ant-javafx.jar:${JAVA_HOME}/lib/ant-javafx.jar"/>
     <fx:application id="KuumbaLauncher" name="KuumbaLauncher" mainClass="net.minecraft.MinecraftLauncher"/>
     <fx:resources id="KuumbaResources">
       <fx:fileset dir="${dist}" includes="kuumba-launcher-${DSTAMP}.jar"/>
